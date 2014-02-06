@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 #include <boost/random.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
@@ -86,14 +87,12 @@ int main(int argc, char **argv)
     // add later
     //double T_eject;
 
-    bool event_happened = false;
+    std::ofstream outfile("output.dat");
 
     for(unsigned i = 0; i < n_max; i++)
     {
         // Reset T0
         T0 = 0;
-
-        event_happened = false;
 
         for (unsigned j = 0; j < n_urns-1; j++)
         {
@@ -109,17 +108,17 @@ int main(int argc, char **argv)
             T0 += T[j] + T[n_urns-1 + j];
         }
 
-        std::cout << "At time " << time << ":\n";
-        std::cout << "\nEvent\t\tProbability:\n";
+        //std::cout << "At time " << time << ":\n";
+        //std::cout << "\nEvent\t\tProbability:\n";
 
         // Calculate the probabilities
         for (unsigned j = 0; j < 2*(n_urns-1); j++)
         {
             probs[j] = T[j]/T0;
-            std::cout << j << "\t\t" << probs[j] << std::endl;
+            //std::cout << j << "\t\t" << probs[j] << std::endl;
         }
 
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         // Get two uniformly random numbers
         r1 = uniform_gen();
@@ -134,58 +133,43 @@ int main(int argc, char **argv)
         // Randomly choose event
         unsigned event = discrete_dist(rng2);
 
-        std::cout << "T0: " << T0 << "\nEvent: " << event;
+        //std::cout << "T0: " << T0 << "\nEvent: " << event;
 
         // Perform stuff due to event
         if (event < (n_urns-1))
         {
             unsigned urn = event;
-            std::cout << " (hop left from urn "
-                      << urn+1 << " to urn " << urn << ")\n\n";
-            if(n[urn+1] > 0)
-            {
-                n[urn+1]--;
-                n[urn]++;
-
-                event_happened = true;
-            }
-            else
-            {
-                std::cout << "No change since n[event+1] empty!\n";
-            }
+            //std::cout << " (hop left from urn "
+            //          << urn+1 << " to urn " << urn << ")\n\n";
+            n[urn+1]--;
+            n[urn]++;
         }
         else
         {
             unsigned urn = event - (n_urns-1);
-            std::cout << " (hop right from urn "
-                      << urn << " to urn " << urn+1 << ")\n\n";
-            if(n[urn] > 0)
-            {
-                n[urn]--;
-                n[urn+1]++;
-
-                event_happened = true;
-            }
-            else
-            {
-                std::cout << "No change since n[event] empty!\n";
-            }
+            //std::cout << " (hop right from urn "
+            //          << urn << " to urn " << urn+1 << ")\n\n";
+            n[urn]--;
+            n[urn+1]++;
         }
 
         // Output
 
-        std::cout << "Urn:\t\tn:\n";
+        //std::cout << "Urn:\t\tn:\n";
+
+        outfile << time;
         for(unsigned j = 0; j < n_urns; j++)
         {
-            std::cout << j << "\t\t" << n[j] << std::endl;
+            outfile << " " << n[j];
+            //std::cout << j << "\t\t" << n[j] << std::endl;
         }
+        outfile << std::endl;
 
         // Increment time with the timestep
-        if(event_happened)
-        {
-            time += dt;
-        }
+        time += dt;
     }
+
+    outfile.close();
 
     return 0;
 }
