@@ -8,9 +8,10 @@
 
 int main(int argc, char **argv)
 {
-    if(!(argc == 7))
+    if(!(argc == 9))
     {
-        std::cerr << "Usage: " << argv[0] << " n_urns n_init a b n_max output\n";
+        std::cerr << "Usage: " << argv[0]
+                  << " n_urns n_init a b inflow outflow t_max output\n";
         exit(1);
     }
 
@@ -41,18 +42,32 @@ int main(int argc, char **argv)
     iss.str(argv[4]);
     iss >> b;
 
-    // Set the maximum number of iterations
-    unsigned n_max = 0;
+    // Set the inflow rate
+    double T_inflow = 0;
     iss.str("");
     iss.clear();
     iss.str(argv[5]);
-    iss >> n_max;
+    iss >> T_inflow;
+
+    // Set the outflow rate
+    double T_outflow = 0;
+    iss.str("");
+    iss.clear();
+    iss.str(argv[6]);
+    iss >> T_outflow;
+
+    // Set the maximum number of iterations
+    double t_max = 0;
+    iss.str("");
+    iss.clear();
+    iss.str(argv[7]);
+    iss >> t_max;
 
     // Set the output file
     std::string outfile_name;
     iss.str("");
     iss.clear();
-    iss.str(argv[6]);
+    iss.str(argv[8]);
     iss >> outfile_name;
 
     // Make a file object with the given filename
@@ -80,12 +95,14 @@ int main(int argc, char **argv)
     double r1 = 0;
 
     // First n_urns-1 entires are "hop left", next n_urns-1 are "hop right",
-    // next n_urns are removal
+    // next n_urns are removal, then 1 inflow, 1 outflow
     const unsigned n_hop_left  = n_urns-1;
     const unsigned n_hop_right = n_urns-1;
-    const unsigned n_removal  = n_urns;
+    const unsigned n_removal   = n_urns;
+    const unsigned n_inflow    = 1;
+    const unsigned n_outflow   = 1;
 
-    const unsigned n_events = n_hop_left + n_hop_right + n_removal;
+    const unsigned n_events = n_hop_left + n_hop_right + n_removal + n_inflow + n_outflow;
 
     // Make the vector of "rates" of the different events
     std::vector<double> T(n_events);
@@ -98,7 +115,7 @@ int main(int argc, char **argv)
 
     for(unsigned i = 0; i < n_removal; i++)
     {
-        T_removal[i] = 0.01;
+        T_removal[i] = 0.;
     }
 
     // Total of rates
@@ -122,7 +139,8 @@ int main(int argc, char **argv)
     outfile << std::endl;
 
     // Timestepping loop
-    for(unsigned i = 0; i < n_max && total_particles > 0; i++)
+    //for(unsigned i = 0; i < n_max && total_particles > 0; i++)
+    while(time < t_max && total_particles > 0)
     {
         // Reset T0
         T0 = 0;
@@ -163,6 +181,20 @@ int main(int argc, char **argv)
             total_particles += n[j];
         }
 
+        // Inflow
+        T[n_hop_left + n_hop_right + n_removal] = T_inflow;
+        T0 += T_inflow;
+
+        // Outflow (can only remove a particle if the last urn is non-empty)
+        if(n[n_urns-1] > 0)
+        {
+            T[n_hop_left + n_hop_right + n_removal + n_inflow] = T_outflow;
+        }
+        else
+        {
+            T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
+        }
+
         //std::cout << "At time " << time << ":\n";
         //std::cout << "\nEvent\t\tProbability:\n";
 
@@ -196,8 +228,9 @@ int main(int argc, char **argv)
         if(event < n_hop_left)
         {
             unsigned urn = event;
-            //std::cout << " (hop left from urn "
-            //          << urn+1 << " to urn " << urn << ")\n\n";
+            std::cout << " (hop left from urn "
+                      << urn+1 << " to urn " << urn << ")\n\n";
+
             n[urn+1]--;
             n[urn]++;
         }
@@ -205,13 +238,14 @@ int main(int argc, char **argv)
         else if(event < (n_hop_left + n_hop_right))
         {
             unsigned urn = event - n_hop_left;
-            //std::cout << " (hop right from urn "
-            //          << urn << " to urn " << urn+1 << ")\n\n";
+            std::cout << " (hop right from urn "
+                      << urn << " to urn " << urn+1 << ")\n\n";
+
             n[urn]--;
             n[urn+1]++;
         }
         // Removal
-        else if(event < n_events)
+        else if(event < (n_hop_left + n_hop_right + n_removal))
         {
             unsigned urn = event - (n_hop_left + n_hop_right);
 
@@ -220,8 +254,31 @@ int main(int argc, char **argv)
 
             n[urn]--;
 
-            // Also decrement total_particles so that the loop condition is
-            // satisfied correctly
+            // Update running total of particles
+            total_particles--;
+        }
+        else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow))
+        {
+            unsigned urn = 0;
+
+            std::cout << " (inflow into urn "
+                      << "0)\n\n";
+
+            n[urn]++;
+
+            // Update running total of particles
+            total_particles++;
+        }
+        else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow + n_outflow))
+        {
+            unsigned urn = n_urns-1;
+
+            std::cout << " (outflow from urn "
+                      << urn << ")\n\n";
+
+            n[urn]--;
+
+            // Update running total of particles
             total_particles--;
         }
         else
