@@ -7,6 +7,8 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
+#include "config.h"
+
 int main(int argc, char **argv)
 {
     if(!(argc == 9))
@@ -132,16 +134,22 @@ int main(int argc, char **argv)
     unsigned total_particles = n_init;
 
     // Output the initial state
+#ifdef LOUD
+    std::cout << "Urn:\t\tn:\n";
+#endif // LOUD
+
     outfile << time;
     for(unsigned j = 0; j < n_urns; j++)
     {
         outfile << " " << n[j];
-        //std::cout << j << "\t\t" << n[j] << std::endl;
+
+#ifdef LOUD
+        std::cout << j << "\t\t" << n[j] << std::endl;
+#endif // LOUD
     }
     outfile << std::endl;
 
     // Timestepping loop
-    //for(unsigned i = 0; i < n_max && total_particles > 0; i++)
     while(time < t_max && total_particles > 0)
     {
         // Reset T0
@@ -197,17 +205,24 @@ int main(int argc, char **argv)
             T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
         }
 
-        //std::cout << "At time " << time << ":\n";
-        //std::cout << "\nEvent\t\tProbability:\n";
+#ifdef LOUD
+        std::cout << "At time " << time << ":\n";
+        std::cout << "\nEvent\t\tProbability:\n";
+#endif // LOUD
 
         // Calculate the probabilities of all events
         for(unsigned j = 0; j < n_events; j++)
         {
             probs[j] = T[j]/T0;
-            //std::cout << j << "\t\t" << probs[j] << std::endl;
+
+#ifdef LOUD
+            std::cout << j << "\t\t" << probs[j] << std::endl;
+#endif // LOUD
         }
 
-        //std::cout << std::endl;
+#ifdef LOUD
+        std::cout << std::endl;
+#endif // LOUD
 
         // Get two uniformly random numbers
         r1 = uniform_gen();
@@ -222,7 +237,9 @@ int main(int argc, char **argv)
         // Randomly choose event
         unsigned event = discrete_dist(rng2);
 
-        //std::cout << "T0: " << T0 << "\nEvent: " << event;
+#ifdef LOUD
+        std::cout << "T0: " << T0 << "\nEvent: " << event;
+#endif // LOUD
 
         // Perform stuff due to event
 
@@ -230,8 +247,11 @@ int main(int argc, char **argv)
         if(event < n_hop_left)
         {
             unsigned urn = event;
+
+#ifdef LOUD
             std::cout << " (hop left from urn "
                       << urn+1 << " to urn " << urn << ")\n\n";
+#endif // LOUD
 
             n[urn+1]--;
             n[urn]++;
@@ -240,8 +260,11 @@ int main(int argc, char **argv)
         else if(event < (n_hop_left + n_hop_right))
         {
             unsigned urn = event - n_hop_left;
+
+#ifdef LOUD
             std::cout << " (hop right from urn "
                       << urn << " to urn " << urn+1 << ")\n\n";
+#endif // LOUD
 
             n[urn]--;
             n[urn+1]++;
@@ -251,8 +274,10 @@ int main(int argc, char **argv)
         {
             unsigned urn = event - (n_hop_left + n_hop_right);
 
+#ifdef LOUD
             std::cout << " (removal from urn "
                       << urn << ")\n\n";
+#endif // LOUD
 
             n[urn]--;
 
@@ -263,8 +288,10 @@ int main(int argc, char **argv)
         {
             unsigned urn = 0;
 
+#ifdef LOUD
             std::cout << " (inflow into urn "
                       << "0)\n\n";
+#endif // LOUD
 
             n[urn]++;
 
@@ -275,8 +302,10 @@ int main(int argc, char **argv)
         {
             unsigned urn = n_urns-1;
 
+#ifdef LOUD
             std::cout << " (outflow from urn "
                       << urn << ")\n\n";
+#endif // LOUD
 
             n[urn]--;
 
@@ -285,7 +314,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            std::cout << "ERROR\n";
+            std::cerr << "ERROR\n";
             exit(1);
         }
 
@@ -294,13 +323,18 @@ int main(int argc, char **argv)
 
         // Output
 
-        //std::cout << "Urn:\t\tn:\n";
+#ifdef LOUD
+        std::cout << "Urn:\t\tn:\n";
+#endif // LOUD
 
         outfile << time;
         for(unsigned j = 0; j < n_urns; j++)
         {
             outfile << " " << n[j];
-            //std::cout << j << "\t\t" << n[j] << std::endl;
+
+#ifdef LOUD
+            std::cout << j << "\t\t" << n[j] << std::endl;
+#endif // LOUD
         }
         outfile << std::endl;
     }
