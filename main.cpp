@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <cstdlib>
 
 #include <boost/random.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
@@ -19,7 +20,7 @@ int main(int argc, char **argv)
     // the number of molecules in each urn)
     unsigned n_urns = 0;
 
-    std::stringstream iss(argv[1]);
+    std::istringstream iss(argv[1]);
     iss >> n_urns;
 
     // Set the number of molecules initially in the first urn
