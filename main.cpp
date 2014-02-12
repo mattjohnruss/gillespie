@@ -30,13 +30,14 @@ int main(int argc, char **argv)
     iss.str(argv[2]);
     iss >> n_init;
 
-    // Set the problem parameters a, b
+    // Set a
     double a = 0;
     iss.str("");
     iss.clear();
     iss.str(argv[3]);
     iss >> a;
 
+    // Set b
     double b = 0;
     iss.str("");
     iss.clear();
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
     iss.str(argv[6]);
     iss >> T_outflow;
 
-    // Set the maximum number of iterations
+    // Set the maximum time
     double t_max = 0;
     iss.str("");
     iss.clear();
@@ -288,12 +289,12 @@ int main(int argc, char **argv)
             exit(1);
         }
 
+        // Increment time with the timestep
+        time += dt;
+
         // Output
 
         //std::cout << "Urn:\t\tn:\n";
-
-        // Increment time with the timestep
-        time += dt;
 
         outfile << time;
         for(unsigned j = 0; j < n_urns; j++)
