@@ -171,7 +171,7 @@ int main(int argc, char **argv)
                 // Hop right
                 T[n_hop_left + j] = (a+b)*n[j];
 
-                // Add hopping contribution to T0
+                // Add hopping contributions to T0
                 T0 += T[j] + T[n_hop_left + j];
             }
 
