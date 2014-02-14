@@ -104,15 +104,73 @@ particle (corresponding to sinks) by the following set of events:
         Outflow & \(T\Sst{out} = d n_N\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
         Removal & \(T\Sst{rem}_i\) = e & \(n_i \leftarrow n_i - 1\) & \(N\) \\
     \end{tabular}
+    \caption{\label{tab:transport_events}Definitions of the different types of
+events in the solute transport system}
 \end{table}
+Figure~\ref{fig:transport_events} gives a diagrammatic representation of the
+different event types.
 
 The constants \(a,b,c,d\) and \(e\) are parameters which must be specified, corresponding
 to the rates (?) of diffusion, advection, inflow, outflow and removal,
 respectively. (Maybe it only makes sense to have \(e=a+b\)?)
 
-There are \(2(N-1) + 2 + N = 3N\) events in total. Note that since
+There are \(M=2(N-1) + 2 + N = 3N\) events in total. Note that since
 the removal rate is a constant this corresponds to zero-order kinetics, where
 the removal rate does not depend on the number of particles in the urn.
+
+\begin{figure}[ht!]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \psfragfig{figures/hopleft}
+        {
+            \psfrag{i}{\(i\)}
+            \psfrag{i+1}{\(i+1\)}
+        }
+        \caption{Hop left}
+    \end{subfigure}
+    \qquad\qquad
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \psfragfig{figures/hopright}
+        {
+            \psfrag{i}{\(i\)}
+            \psfrag{i+1}{\(i+1\)}
+        }
+        \caption{Hop right}
+    \end{subfigure}
+
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \psfragfig{figures/inflow}
+        {
+            \psfrag{1}{\(1\)}
+        }
+        \caption{Inflow}
+    \end{subfigure}
+    \qquad\qquad
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \psfragfig{figures/outflow}
+        {
+            \psfrag{N}{\(N\)}
+        }
+        \caption{Outflow}
+    \end{subfigure}
+
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \psfragfig{figures/removal}
+        {
+            \psfrag{i}{\(i\)}
+        }
+        \caption{Removal}
+    \end{subfigure}
+    \caption{\label{fig:transport_events}Diagrammatic representation of the
+different event types in the solute transport system}
+\end{figure}
+
+\FloatBarrier
 
 \subsection{Example realisations}
 
@@ -125,6 +183,17 @@ the removal rate does not depend on the number of particles in the urn.
 
     \caption{\label{fig:exreal1}Realisation of the time evolution of the number
 of particles in each urn. \(N=10,a=1,b=0.5,c=1000,d=1.5,e=0\).}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \psfragfig{figures/realisation2}
+    {
+        \psfrag{t}{\(t\)}
+    }
+
+    \caption{\label{fig:exreal2}Realisation of the time evolution of the number
+of particles in each urn. \(N=10,a=2,b=0,c=1000,d=2,e=0\).}
 \end{figure}
 
 \FloatBarrier

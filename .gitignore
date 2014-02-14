@@ -7,3 +7,10 @@ mean
 *.dat
 *.pdf
 *.eps
+!doc/figures/*.eps
+*.aux
+*.bbl
+*.out
+*.blg
+*.log
+*pstool*
