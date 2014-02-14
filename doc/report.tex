@@ -1,0 +1,134 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+%\usepackage[only,llbracket,rrbracket]{stmaryrd}
+\usepackage{a4wide}
+\usepackage[a4paper]{geometry}
+\usepackage{mathtools}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+%\usepackage{amssymb}
+\usepackage{fixltx2e}
+\usepackage{natbib}
+\usepackage[crop=pdfcrop,process=auto]{pstool}
+\usepackage{multirow}
+\usepackage{enumerate}
+
+\numberwithin{equation}{section}
+
+\newcommand{\Sst}[1]{^\text{\tiny #1}}
+\newcommand{\sst}[1]{_\text{\tiny #1}}
+
+\bibliographystyle{plainnat}
+
+\title{}
+\author{Matthew Russell}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Gillespie algorithm}
+The Gillespie algorithm is a stochastic simulation algorithm, named after
+Gillespie due to the papers \cite{gillespie1976general,gillespie1977exact}. It
+was described by Gillespie in terms of its application to simulating chemical
+reactions, but it is applicable to any stochastic equation (?).
+\cite{anderson2007modified} gives a clear description of the algorithm (again in
+terms of chemical reactions).
+
+\begin{figure}[ht!]
+    \centering
+    \psfragfig[width=0.6\textwidth]{figures/urns}
+    {
+        \psfrag{1}{\(1\)}
+        \psfrag{2}{\(2\)}
+        \psfrag{3}{\(3\)}
+        \psfrag{N-1}{\(N-1\)}
+        \psfrag{N}{\(N\)}
+    }
+    \caption{\label{fig:urns}Set up of the urns containing the particles}
+\end{figure}
+
+Suppose we have a physical system with \(N\) possible locations (``urns'') that
+each particle can reside in (we impose no upper limit on the number of particles
+in each urn), as in figure~\ref{fig:urns}. Denote the number of particles in urn
+\(i\) by \(n_i\). Also suppose that there are \(M\)
+different events that can occur in the system, such as a particle moving from
+one urn to the adjacent urn, or the spontaneous appearance of a particle in the
+first urn. These events must occur at specified rates, which represent the
+number of times per second one expects the corresponding event to occur.  Given
+the rates \(T_i, 1 \le i \le M\) at which the events in the system are expected
+to occur, the basic idea of the Gillespie algorithm is to randomly choose the
+time increment and then randomly choose the event that will occur at the new
+time. The random time increment is drawn from an exponential distribution with
+parameter \(T_0 = \sum_{i=1}^M T_i\), the sum of all of the rates. The rates of
+the events are not necessarily constants and therefore must be recalculated at
+each time step. For example, the rate at which a particle jumps from one urn to
+an adjacent urn might depend on the number of particles in the original urn.
+
+The Gillespie algorithm is as follows:
+\begin{enumerate}[\bfseries Step 1:]
+    \item Set the initial number of particles in each urn and set time \(t=0\)
+    \item Calculate the rate \(T_i\) for each of the \(M\) events
+    \item Set \(T_0 = \sum_{i=1}^M T_i\)
+    \item Generate a uniformly random real number \(r\), such that \(0 \le r \le 1\)
+    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. an
+        \(\delta t\) is drawn from an exponential distribution)
+    \item Choose a event randomly from the discrete distribution such that
+        probability of drawing event \(k\) is \(T_k/T_0\), for \(1 \le k \le
+        M\)
+    \item Increment time according to the time step, \(t \leftarrow t + \delta
+        t\), and perform the changes corresponding to the event chosen
+    \item Return to Step 2, unless the stopping criteria have been met
+\end{enumerate}
+
+\section{Solute transport}
+Given a system as in figure~\ref{fig:urns} with \(N\) urns, we model the
+transport of a solute by advection, diffusion and spontaneous disappearance of a
+particle (corresponding to sinks) by the following set of events:
+
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{ c | c | c | c }
+        Description & Rate & Effect & Count \\ \hline\hline
+        \multirow{2}{*}{Hop left} & \multirow{2}{*}{\(T^-_i = a n_{i+1}\)} &
+        \(n_{i+1} \leftarrow n_{i+1} - 1\) & \multirow{2}{*}{\(N-1\)} \\
+        & & \(n_i \leftarrow n_i + 1\) \\ \hline
+        \multirow{2}{*}{Hop right} & \multirow{2}{*}{\(T^+_i = (a+b) n_i\)} &
+        \(n_i \leftarrow n_i - 1\) & \multirow{2}{*}{\(N-1\)} \\
+        & & \(n_{i+1} \leftarrow n_{i+1} + 1\) \\ \hline
+        Inflow & \(T\Sst{in} = c\) & \(n_1 \leftarrow n_1 + 1\) & \(1\) \\ \hline
+        Outflow & \(T\Sst{out} = d n_N\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
+        Removal & \(T\Sst{rem}_i\) = e & \(n_i \leftarrow n_i - 1\) & \(N\) \\
+    \end{tabular}
+\end{table}
+
+The constants \(a,b,c,d\) and \(e\) are parameters which must be specified, corresponding
+to the rates (?) of diffusion, advection, inflow, outflow and removal,
+respectively. (Maybe it only makes sense to have \(e=a+b\)?)
+
+There are \(2(N-1) + 2 + N = 3N\) events in total. Note that since
+the removal rate is a constant this corresponds to zero-order kinetics, where
+the removal rate does not depend on the number of particles in the urn.
+
+\subsection{Example realisations}
+
+\begin{figure}[ht!]
+    \centering
+    \psfragfig{figures/realisation1}
+    {
+        \psfrag{t}{\(t\)}
+    }
+
+    \caption{\label{fig:exreal1}Realisation of the time evolution of the number
+of particles in each urn. \(N=10,a=1,b=0.5,c=1000,d=1.5,e=0\).}
+\end{figure}
+
+\FloatBarrier
+
+\bibliography{references}
+
+\end{document}
