@@ -22,6 +22,10 @@
 \newcommand{\Sst}[1]{^\text{\tiny #1}}
 \newcommand{\sst}[1]{_\text{\tiny #1}}
 
+\newcommand{\diff}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\newcommand{\pdiff}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\V}[1]{\mathbf{#1}}
+
 \bibliographystyle{plainnat}
 
 \title{}
@@ -35,7 +39,7 @@
 The Gillespie algorithm is a stochastic simulation algorithm, named after
 Gillespie due to the papers \cite{gillespie1976general,gillespie1977exact}. It
 was described by Gillespie in terms of its application to simulating chemical
-reactions, but it is applicable to any stochastic equation (?).
+reactions, but it is applicable to any continuous time Markov process.
 \cite{anderson2007modified} gives a clear description of the algorithm (again in
 terms of chemical reactions).
 
@@ -75,8 +79,8 @@ The Gillespie algorithm is as follows:
     \item Calculate the rate \(T_i\) for each of the \(M\) events
     \item Set \(T_0 = \sum_{i=1}^M T_i\)
     \item Generate a uniformly random real number \(r\), such that \(0 \le r \le 1\)
-    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. an
-        \(\delta t\) is drawn from an exponential distribution)
+    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. a \(\delta
+        t\) is drawn from an exponential distribution)
     \item Choose a event randomly from the discrete distribution such that
         probability of drawing event \(k\) is \(T_k/T_0\), for \(1 \le k \le
         M\)
@@ -102,7 +106,7 @@ particle (corresponding to sinks) by the following set of events:
         & & \(n_{i+1} \leftarrow n_{i+1} + 1\) \\ \hline
         Inflow & \(T\Sst{in} = c\) & \(n_1 \leftarrow n_1 + 1\) & \(1\) \\ \hline
         Outflow & \(T\Sst{out} = d n_N\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
-        Removal & \(T\Sst{rem}_i\) = e & \(n_i \leftarrow n_i - 1\) & \(N\) \\
+        Removal & \(T\Sst{rem}_i = s_i\) & \(n_i \leftarrow n_i - 1\) & \(N\) \\
     \end{tabular}
     \caption{\label{tab:transport_events}Definitions of the different types of
 events in the solute transport system}
@@ -110,9 +114,10 @@ events in the solute transport system}
 Figure~\ref{fig:transport_events} gives a diagrammatic representation of the
 different event types.
 
-The constants \(a,b,c,d\) and \(e\) are parameters which must be specified, corresponding
-to the rates (?) of diffusion, advection, inflow, outflow and removal,
-respectively. (Maybe it only makes sense to have \(e=a+b\)?)
+The constants \(a,b,c,d\) and the \(s_i\) are parameters which must be
+specified, corresponding to the rates (?) of diffusion, advection, inflow,
+outflow and removal (from urn \(i\)), respectively. (Maybe it only makes sense to have
+\(d=a+b\)?)
 
 There are \(M=2(N-1) + 2 + N = 3N\) events in total. Note that since
 the removal rate is a constant this corresponds to zero-order kinetics, where
@@ -197,6 +202,117 @@ of particles in each urn. \(N=10,a=2,b=0,c=1000,d=2,e=0\).}
 \end{figure}
 
 \FloatBarrier
+
+\section{Master equation}
+The master equation describes the time evolution of the probability distribution
+on the states of a continuous time Markov processes.
+
+%Its general form is
+%
+%\begin{equation}
+%    \label{eqn:master_eqn_general}
+%    \diff{P(i,t)}{t} = \sum_j A_{ij} P(j,t),
+%\end{equation}
+%where \(P(i,t)\) is the probability that the system is in state with label \(i\)
+%at time \(t\), and \(A_{ij}\) is a matrix of rate coefficients.
+
+In the case of solute transport, the states of the system consist of the number
+of particles contained in each urn at a given time. It is convenient to use a
+vector to collect this data:
+\begin{equation}
+    \label{eqn:state_vector}
+    \V{n} = \left(n_1,n_2, \dotsc, n_N\right)^{T}.
+\end{equation}
+Also, let \(T(\V{n}|\V{n}')\) denote the rate of transition from state \(\V{n}'\)
+to state \(\V{n}\). Then the master equation is \citep{mckane2012stochastic}
+\begin{equation}
+    \label{eqn:master_eqn_rates}
+    \diff{P(\V{n},t)}{t} = \sum_{\V{n}' \neq \V{n}} \left[ T(\V{n}|\V{n}')
+        P(\V{n}',t) - T(\V{n}'|\V{n}) P(\V{n},t) \right].
+\end{equation}
+
+\subsection{Solute transport}
+For the above problem of solute transport, the transition rates in
+table~\ref{tab:transport_events} can be combined into a single object using the
+notation introduced in the previous section:
+\begin{equation}
+    \label{eqn:}
+    T(\V{n}|\V{n}') = \left\{
+        \begin{matrix}
+            a n'_{i+1} & \text{for} & \V{n} = \V{n}' + \V{e}_i - \V{e}_{i+1},
+            i=1,\dotsc,N-1\\
+            (a+b) n'_i & \text{for} & \V{n} = \V{n}' - \V{e}_i + \V{e}_{i+1},
+            i=1,\dotsc,N-1\\
+            c & \text{for} & \V{n} = \V{n}' + \V{e}_1\\
+            d & \text{for} & \V{n} = \V{n}' - \V{e}_N\\
+            S_i & \text{for} & \V{n} = \V{n}' - \V{e}_i, i=1,\dotsc,N-1\\
+            0 & \text{otherwise}\\
+        \end{matrix}
+        \right.,
+\end{equation}
+where \(\V{e}_i = (0,\dotsc,0,1,0,\dotsc,0)^T\) is the vector with a \(1\) in
+the \(i\)-th entry and a \(0\) in all others. Using this we can write \(\V{n} =
+\sum_{i=0}^{N} n_i \V{e}_i\). We will calculate the terms on the right hand side
+of the master equation \eqref{eqn:master_eqn_rates} corresponding to each type
+of event separately.
+
+\begin{itemize}
+    \item Hop left (\(\V{n} = \V{n}' + \V{e}_i - \V{e}_{i+1}\)):
+        \begin{equation}
+            \label{eqn:trans_me_hl_term}
+            \sum_{i=1}^{N-1} \left[a(n_{i+1}+1) P(\V{n} - \V{e}_i +
+                \V{e}_{i+1},t) - a n_{i+1} P(\V{n},t) \right]
+        \end{equation}
+    \item Hop right (\(\V{n} = \V{n}' - \V{e}_i + \V{e}_{i+1}\)):
+        \begin{equation}
+            \label{eqn:trans_me_hr_term}
+            \sum_{i=1}^{N-1} \left[(a+b)(n_i+1) P(\V{n} + \V{e}_i -
+                \V{e}_{i+1},t) - (a+b)n_i P(\V{n},t) \right]
+        \end{equation}
+    \item Inflow (\(\V{n} = \V{n}' + \V{e}_1\)):
+        \begin{equation}
+            \label{eqn:trans_me_in_term}
+            cP(\V{n} - \V{e}_1,t) - c P(\V{n},t)
+        \end{equation}
+    \item Outflow (\(\V{n} = \V{n}' - \V{e}_N\)):
+        \begin{equation}
+            \label{eqn:trans_me_out_term}
+            dP(\V{n} + \V{e}_N,t) - d P(\V{n},t)
+        \end{equation}
+    \item Removal (\(\V{n} = \V{n}' - \V{e}_i\)):
+        \begin{equation}
+            \label{eqn:trans_me_rem_term}
+            \sum_{i=1}^N \left[ S_i P(\V{n} + \V{e}_i,t) - S_i P(\V{n},t)
+                \right]
+        \end{equation}
+\end{itemize}
+
+Combining \eqref{eqn:trans_me_hl_term}--\eqref{eqn:trans_me_rem_term}, we
+obtain the master equation for this system:
+\begin{equation}
+    \label{eqn:trans_me}
+    \begin{split}
+        \diff{P(\V{n},t)}{t} = &
+            \sum_{i=1}^{N-1} \left[a(n_{i+1}+1) P(\V{n} - \V{e}_i +
+                \V{e}_{i+1},t) - a n_{i+1} P(\V{n},t) \right]\\
+            +&\sum_{i=1}^{N-1} \left[(a+b)(n_i+1) P(\V{n} + \V{e}_i -
+                \V{e}_{i+1},t) - (a+b)n_i P(\V{n},t) \right]\\
+            +&cP(\V{n} - \V{e}_1,t) - c P(\V{n},t)\\
+            +&dP(\V{n} + \V{e}_N,t) - d P(\V{n},t)\\
+            +&\sum_{i=1}^N \left[ S_i P(\V{n} + \V{e}_i,t) - S_i P(\V{n},t)
+                \right].
+    \end{split}
+\end{equation}
+
+The expected value of the number of particles in urn \(i\) at time \(t\) is
+\begin{equation*}
+    \langle n_i \rangle(t) = \sum_{j=1}^\infty j P(n_i = j,t),
+\end{equation*}
+where \(P(n_i = j,t)\) is the marginal distribution of \(n_i\) (is this the
+correct way to do it?). The expected value of the entire state \(\V{n}\) at time \(t\) is
+\begin{equation*}
+    \langle \V{n} \rangle(t) = \sum_{i=1}^N \langle n_i \rangle(t) \V{e}_i
+\end{equation*}
 
 \bibliography{references}
 
