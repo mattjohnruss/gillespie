@@ -11,10 +11,11 @@
 
 int main(int argc, char **argv)
 {
-    if(!(argc == 9))
+    if(!(argc == 10))
     {
         std::cerr << "Usage: " << argv[0]
-                  << " n_urns n_init a b inflow outflow t_max output\n";
+                  << " n_urns n_init a b inflow outflow t_max outfile interval"
+                  << std::endl;
         exit(1);
     }
 
@@ -74,8 +75,17 @@ int main(int argc, char **argv)
     iss.str(argv[8]);
     iss >> outfile_name;
 
+    // Set the output interval
+    double output_interval;
+    iss.str("");
+    iss.clear();
+    iss.str(argv[9]);
+    iss >> output_interval;
+
     // Make a file object with the given filename
     std::ofstream outfile(outfile_name.c_str());
+
+    //std::ofstream testoutfile("testoutput.dat");
 
     // Declare the storage for the urns
     std::vector<unsigned> n(n_urns,0);
@@ -134,20 +144,23 @@ int main(int argc, char **argv)
     unsigned total_particles = n_init;
 
     // Output the initial state
-#ifdef LOUD
-    std::cout << "Urn:\t\tn:\n";
-#endif // LOUD
 
     outfile << time;
     for(unsigned j = 0; j < n_urns; j++)
     {
         outfile << " " << n[j];
-
-#ifdef LOUD
-        std::cout << j << "\t\t" << n[j] << std::endl;
-#endif // LOUD
     }
     outfile << std::endl;
+
+    //testoutfile << time;
+    //for(unsigned j = 0; j < n_urns; j++)
+    //{
+    //    testoutfile << " " << n[j];
+    //}
+    //testoutfile << std::endl;
+
+    // Index of the last output
+    unsigned k = 0;
 
     // Timestepping loop
     while(time < t_max && total_particles > 0)
@@ -207,24 +220,11 @@ int main(int argc, char **argv)
         //    T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
         //}
 
-#ifdef LOUD
-        std::cout << "At time " << time << ":\n";
-        std::cout << "\nEvent\t\tProbability:\n";
-#endif // LOUD
-
         // Calculate the probabilities of all events
         for(unsigned j = 0; j < n_events; j++)
         {
             probs[j] = T[j]/T0;
-
-#ifdef LOUD
-            std::cout << j << "\t\t" << probs[j] << std::endl;
-#endif // LOUD
         }
-
-#ifdef LOUD
-        std::cout << std::endl;
-#endif // LOUD
 
         // Get two uniformly random numbers
         r1 = uniform_gen();
@@ -239,9 +239,28 @@ int main(int argc, char **argv)
         // Randomly choose event
         unsigned event = discrete_dist(rng2);
 
-#ifdef LOUD
-        std::cout << "T0: " << T0 << "\nEvent: " << event;
-#endif // LOUD
+        // Output must happen here to avoid saving the previous state of the
+        // urns
+
+        // Do outputs at appropriate intervals until the time of the last
+        // output exceeds the new actual time (t+dt)
+        for(unsigned l = k+1; l*output_interval < time+dt; l++)
+        {
+            outfile << l*output_interval;
+
+            for(unsigned j = 0; j < n_urns; j++)
+            {
+                outfile << " " << n[j];
+            }
+
+            outfile << std::endl;
+
+            // Update k to l (by the end of the loop k should equal the
+            // index of the last output performed). Only NEEDS to be done on
+            // the last iteration but it would (probably) be more expensive
+            // to do a test than to just set k each time.
+            k = l;
+        }
 
         // Perform stuff due to event
 
@@ -249,11 +268,6 @@ int main(int argc, char **argv)
         if(event < n_hop_left)
         {
             unsigned urn = event;
-
-#ifdef LOUD
-            std::cout << " (hop left from urn "
-                      << urn+1 << " to urn " << urn << ")\n\n";
-#endif // LOUD
 
             n[urn+1]--;
             n[urn]++;
@@ -263,11 +277,6 @@ int main(int argc, char **argv)
         {
             unsigned urn = event - n_hop_left;
 
-#ifdef LOUD
-            std::cout << " (hop right from urn "
-                      << urn << " to urn " << urn+1 << ")\n\n";
-#endif // LOUD
-
             n[urn]--;
             n[urn+1]++;
         }
@@ -275,11 +284,6 @@ int main(int argc, char **argv)
         else if(event < (n_hop_left + n_hop_right + n_removal))
         {
             unsigned urn = event - (n_hop_left + n_hop_right);
-
-#ifdef LOUD
-            std::cout << " (removal from urn "
-                      << urn << ")\n\n";
-#endif // LOUD
 
             n[urn]--;
 
@@ -290,11 +294,6 @@ int main(int argc, char **argv)
         {
             unsigned urn = 0;
 
-#ifdef LOUD
-            std::cout << " (inflow into urn "
-                      << "0)\n\n";
-#endif // LOUD
-
             n[urn]++;
 
             // Update running total of particles
@@ -303,11 +302,6 @@ int main(int argc, char **argv)
         else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow + n_outflow))
         {
             unsigned urn = n_urns-1;
-
-#ifdef LOUD
-            std::cout << " (outflow from urn "
-                      << urn << ")\n\n";
-#endif // LOUD
 
             n[urn]--;
 
@@ -323,25 +317,19 @@ int main(int argc, char **argv)
         // Increment time with the timestep
         time += dt;
 
-        // Output
+        //// Full output for testing
 
-#ifdef LOUD
-        std::cout << "Urn:\t\tn:\n";
-#endif // LOUD
+        //testoutfile << time;
+        //for(unsigned j = 0; j < n_urns; j++)
+        //{
+        //    testoutfile << " " << n[j];
+        //}
 
-        outfile << time;
-        for(unsigned j = 0; j < n_urns; j++)
-        {
-            outfile << " " << n[j];
-
-#ifdef LOUD
-            std::cout << j << "\t\t" << n[j] << std::endl;
-#endif // LOUD
-        }
-        outfile << std::endl;
+        //testoutfile << std::endl;
     }
 
     outfile.close();
+    //testoutfile.close();
 
     return 0;
 }
