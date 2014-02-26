@@ -15,7 +15,7 @@ echo "for (i = 0; i <= $1; i++)"
 echo -n "print i"
 for j in $(seq 1 $2)
 do
-    echo -n ", total[i][$j]/5001"
+    echo -n ", total[i][$j]/$3"
 done
 echo ""
 echo "}"
