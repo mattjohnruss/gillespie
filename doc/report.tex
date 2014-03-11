@@ -25,6 +25,7 @@
 \newcommand{\diff}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
 \newcommand{\pdiff}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\V}[1]{\mathbf{#1}}
+\newcommand{\E}[1]{\langle #1 \rangle}
 
 \bibliographystyle{plainnat}
 
@@ -304,15 +305,64 @@ obtain the master equation for this system:
     \end{split}
 \end{equation}
 
-The expected value of the number of particles in urn \(i\) at time \(t\) is
+\section{Deterministic mean-field equations}
+The objective of this section is to obtain an equation governing the time
+evolution of the expected value of the number of particles in each urn.
+
+The expected value of the entire state \(\V{n}\) at time \(t\) is
 \begin{equation*}
-    \langle n_i \rangle(t) = \sum_{j=1}^\infty j P(n_i = j,t),
+    \E{\V{n}}(t) = \sum_{i=1}^N \langle n_i \rangle(t) \V{e}_i,
 \end{equation*}
-where \(P(n_i = j,t)\) is the marginal distribution of \(n_i\) (is this the
-correct way to do it?). The expected value of the entire state \(\V{n}\) at time \(t\) is
-\begin{equation*}
-    \langle \V{n} \rangle(t) = \sum_{i=1}^N \langle n_i \rangle(t) \V{e}_i
-\end{equation*}
+where \(\E{n_i}(t)\) is the expected value of the number of particles in urn
+\(i\) at time \(t\) and is given by
+\begin{align*}
+    \E{n_i}(t) =& \sum_{j=0}^\infty j P(n_i = j,t)\\
+    =& \sum_{j=0} j
+    \sum_{\substack{\V{n} \text{ with} \\ n_i=j}} P(\V{n},t)\\
+    =& \sum_{j=0} j
+    \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso \sum_{n_N} P(\V{n},t)\\
+    =& \sum_{\V{n}} n_i P(\V{n},t),
+\end{align*}
+where \(P(n_i = j,t)\) denotes the marginal distribution of \(n_i\).
+
+Differentiating \(\E{n_i}\) with respect to time,
+\begin{align*}
+    \diff{(\E{n_i}(t))}{t} =& \sum_{\V{n}} n_i \diff{(P(\V{n},t))}{t}.
+\end{align*}
+
+Substituting the expression \eqref{eqn:trans_me} into the above,
+
+\begin{subequations}
+\begin{align}
+    \label{eqn:trans_expectation_hl_term}
+    \diff{(\E{n_i}(t))}{t}
+    = & \sum_\V{n} n_i \sum_{j=1}^{N-1}
+    \left[a(n_{j+1}+1) P(\V{n} - \V{e}_j + \V{e}_{j+1},t) -
+        an_{j+1} P(\V{n},t)\right] \\
+    \label{eqn:trans_expectation_hr_term}
+    + & \sum_\V{n} n_i \sum_{j=1}^{N-1}
+    \left[(a+b)(n_j+1) P(\V{n} + \V{e}_j - \V{e}_{j+1},t) -
+        (a+b)n_j P(\V{n},t)\right] \\
+    \label{eqn:trans_expectation_in_term}
+    + & \sum_\V{n} n_i
+    \left[c P(\V{n} - \V{e}_1,t) - c P(\V{n},t)\right] \\
+    + & \sum_\V{n} n_i
+    \left[d P(\V{n} + \V{e}_N,t) - d P(\V{n},t)\right] \\
+    + & \sum_\V{n} n_i \sum_{j=1}^{N}
+    \left[S_i P(\V{n} + \V{e}_j,t) - S_j P(\V{n},t)\right]
+\end{align}
+\end{subequations}
+
+We will treat the above on a term by term basis.
+
+\paragraph{Hop right \eqref{eqn:trans_expectation_hl_term}} We will explicitly
+calculate the results for the cases \(i=1\) and \(i=N\) since the logic for
+other cases is a combination of these.
+
+\begin{itemize}
+    \item \(i=1\)
+\end{itemize}
+
 
 \bibliography{references}
 
