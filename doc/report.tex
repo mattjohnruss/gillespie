@@ -238,18 +238,18 @@ table~\ref{tab:transport_events} can be combined into a single object using the
 notation introduced in the previous section:
 \begin{equation}
     \label{eqn:}
-    T(\V{n}|\V{n}') = \left\{
-        \begin{matrix}
-            a n'_{i+1} & \text{for} & \V{n} = \V{n}' + \V{e}_i - \V{e}_{i+1},
-            i=1,\dotsc,N-1\\
-            (a+b) n'_i & \text{for} & \V{n} = \V{n}' - \V{e}_i + \V{e}_{i+1},
-            i=1,\dotsc,N-1\\
-            c & \text{for} & \V{n} = \V{n}' + \V{e}_1\\
-            d & \text{for} & \V{n} = \V{n}' - \V{e}_N\\
-            S_i & \text{for} & \V{n} = \V{n}' - \V{e}_i, i=1,\dotsc,N-1\\
-            0 & \text{otherwise}\\
-        \end{matrix}
-        \right.,
+    T(\V{n}|\V{n}') =% \left\{
+        \begin{dcases*}
+            a n'_{i+1} & for \(\V{n} = \V{n}' + \V{e}_i - \V{e}_{i+1},
+            i=1,\dotsc,N-1\)\\
+            (a+b) n'_i & for \(\V{n} = \V{n}' - \V{e}_i + \V{e}_{i+1},
+            i=1,\dotsc,N-1\)\\
+            c & for \(\V{n} = \V{n}' + \V{e}_1\)\\
+            d & for \(\V{n} = \V{n}' - \V{e}_N\)\\
+            S_i & for \(\V{n} = \V{n}' - \V{e}_i, i=1,\dotsc,N-1\)\\
+            0 & otherwise
+        \end{dcases*}
+        %\right.,
 \end{equation}
 where \(\V{e}_i = (0,\dotsc,0,1,0,\dotsc,0)^T\) is the vector with a \(1\) in
 the \(i\)-th entry and a \(0\) in all others. Using this we can write \(\V{n} =
@@ -346,8 +346,10 @@ Substituting the expression \eqref{eqn:trans_me} into the above,
     \label{eqn:trans_expectation_in_term}
     + & \sum_\V{n} n_i
     \left[c P(\V{n} - \V{e}_1,t) - c P(\V{n},t)\right] \\
+    \label{eqn:trans_expectation_out_term}
     + & \sum_\V{n} n_i
     \left[d P(\V{n} + \V{e}_N,t) - d P(\V{n},t)\right] \\
+    \label{eqn:trans_expectation_rem_term}
     + & \sum_\V{n} n_i \sum_{j=1}^{N}
     \left[S_i P(\V{n} + \V{e}_j,t) - S_j P(\V{n},t)\right]
 \end{align}
@@ -355,7 +357,7 @@ Substituting the expression \eqref{eqn:trans_me} into the above,
 
 We will treat the above on a term by term basis.
 
-\paragraph{Hop right \eqref{eqn:trans_expectation_hl_term}} We will explicitly
+\paragraph{Hop left~\eqref{eqn:trans_expectation_hl_term}} We will explicitly
 calculate the results for the cases \(i=1\) and \(i=N\) since the logic for
 other cases is a combination of these.
 
@@ -371,32 +373,240 @@ other cases is a combination of these.
                 + & \dotsb\\
                 + & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_N + 1)
                 P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N + 1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 n_2
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 n_3
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right) \\
-                - & \dotsb \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 n_N
+                - & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + n_3 + \dotsb + n_N)
                 P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
             \biggr\} \\
             = a\biggl\{
                 & \sum_{n_1} \sum_{n_2 = 1}^\infty \sum_{n_3} \dotso \sum_{n_N} n_1 n_2
                 P\left(\left(n_1 - 1,n_2,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso \sum_{n_N} n_1 n_3
+                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso
+                \sum_{n_N} n_1 n_3
                 P\left(\left(n_1,n_2 - 1,n_3,\dotsc,n_N\right)^T,t\right) \\
                 + & \dotsb\\
                 + & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_1 n_N
                 P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 n_2
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 n_3
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right) \\
-                - & \dotsb \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 n_N
+                - & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + n_3 + \dotsb + n_N)
                 P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = a\biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} \Bigl[(n_1+1)n_2 + n_1 \left(n_3
+                + n_4 + \dotsb + n_N\right)\Bigr]
+                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_1\left(n_2 + n_3 + \dotsb +
+                n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = \hphantom{\biggl\{} a & \sum_{n_1} \dotsb \sum_{n_N} n_2
+                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+            = \hphantom{\biggl\{} a & \E{n_2}(t)
+        \end{align*}
+    \item \(i=N\). Similarly,
+        \begin{align*}
+            a\biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + 1)
+                P\left(\left(n_1 - 1,n_2 + 1,n_3,\dotsc,n_N\right)^T,t\right) \\
+                + & \sum_{n_1} \dotso \sum_{n_N} n_N (n_3 + 1)
+                P\left(\left(n_1,n_2 - 1,n_3 +
+                1,n_4,\dotsc,n_N\right)^T,t\right) \\
+                + & \dotsb\\
+                + & \sum_{n_1} \dotso \sum_{n_N} n_N (n_N + 1)
+                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N + 1\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + n_3 + \dotsb + n_N)
+                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = a\biggl\{
+                & \sum_{n_1} \sum_{n_2 = 1}^\infty \sum_{n_3} \dotso \sum_{n_N} n_N n_2
+                P\left(\left(n_1 - 1,n_2,n_3,\dotsc,n_N\right)^T,t\right) \\
+                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso
+                \sum_{n_N} n_N n_3
+                P\left(\left(n_1,n_2 - 1,n_3,\dotsc,n_N\right)^T,t\right) \\
+                + & \dotsb\\
+                + & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty (n_N-1) n_N
+                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + n_3 + \dotsb + n_N)
+                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = a\biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} n_N \left(n_2 + n_3 +
+                \dotsb + n_{N-1} + (n_N - 1)\right)
+                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_N} \dotso \sum_{n_N} n_1\left(n_2 + n_3 + \dotsb +
+                n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = - a & \sum_{n_1} \dotsb \sum_{n_N} n_N
+                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+            = - a & \E{n_N}(t)
+        \end{align*}
+    \item \(i=2,\dotsc,N-1\). For these cases we have a combination of terms of
+        the type found in the cases \(i=1\) and \(i=N\):
+        \begin{equation*}
+            a\left(\E{n_{i+1}}-\E{n_i}\right)
+        \end{equation*}
+    \item The general expression for all \(i\) is
+        \begin{equation*}
+            \begin{dcases*}
+                a\E{n_2} & for \(i=1\)\\
+                a\left(\E{n_{i+1}} - \E{n_i}\right) & for \(i=2,\dotsc,N-1\)\\
+                -a\E{n_N} & for \(i=N\)
+            \end{dcases*}
+        \end{equation*}
+\end{itemize}
+
+\paragraph{Hop right~\eqref{eqn:trans_expectation_hr_term}}
+The working for the hop right terms is very similar to that for the hop left
+terms above. The general expression for all \(i\):
+\begin{equation*}
+    \begin{dcases*}
+        -(a+b)\E{n_1} & for \(i=1\)\\
+        (a+b)\left(\E{n_{i-1}} - \E{n_i}\right) & for \(i=2,\dotsc,N-1\)\\
+        (a+b)\E{n_N-1} & for \(i=N\)
+    \end{dcases*}
+\end{equation*}
+
+\paragraph{Inflow~\eqref{eqn:trans_expectation_in_term}}
+\begin{itemize}
+    \item \(i=1\).
+        \begin{align*}
+            c \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
+                -1,n_2,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = c \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} (n_1 + 1) P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = c \hphantom{\biggl\{} & \sum_{n_1} \dotso \sum_{n_N}
+            P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+            = c \hphantom{\biggl\{} &
+        \end{align*}
+    \item \(i\ne 1\).
+        All terms cancel in this case, so the result is \(0\).
+\end{itemize}
+
+\paragraph{Outflow~\eqref{eqn:trans_expectation_out_term}}
+\begin{itemize}
+    \item \(i=N\).
+        \begin{align*}
+            d \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
+                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = d \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} (n_N + 1) P\left(\left(n_1
+                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
+                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = -d \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_{N-1}} P\left(\left(n_1
+                ,n_2,\dotsc,n_{N-1},0\right)^T,t\right)
+            \biggr\} \\
+            = -d \biggl\{
+                & 1 - \underbrace{P(n_N=0,t)}_{\text{not sure about
+                this}}
             \biggr\}
         \end{align*}
+    \item \(i \ne N\).
+        \begin{align*}
+            d \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = d \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_i P\left(\left(n_1
+                ,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right)
+            \biggr\} \\
+            = -d & \underbrace{\sum_{n_i} n_i P(n_i,n_N=0,t)}_{\text{not sure about
+                this}}
+        \end{align*}
 \end{itemize}
+
+\paragraph{Removal~\eqref{eqn:trans_expectation_rem_term}}
+\begin{align*}
+    \sum_{j=1}^N S_j \biggl\{
+        & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1,\dotsc,n_{j-1},n_j +
+        1,n_{j+1},\dotsc,n_N\right)^T,t\right)\\
+        - & \sum_{n_1} \dotso \sum_{n_N} n_i
+        P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+    \biggr\}
+\end{align*}
+\begin{itemize}
+    \item \(i=j\) term. Similar to outflow but we now have arbitrary \(i\).
+        \begin{align*}
+            - S_i \biggl\{
+                & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
+                ,n_2,\dotsc,n_N\right)^T,t\right) \\
+                - & \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso
+                \sum_{n_N}
+                P\left(\left(n_1,n_2,\dotsc,n_{i-1},0,n_{i+1},\dotso,n_N\right)^T,t\right)
+            \biggr\}\\
+            = S_i \biggl\{
+                & -1 + \underbrace{P(n_i=0,t)}_{\text{not sure
+                about this}}
+            \biggr\}
+        \end{align*}
+    \item \(i \ne j\) terms.
+        \begin{align*}
+            & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_1} \dotso
+            \sum_{n_{j-1}} \sum_{n_{j+1}} \dotso \sum_{n_N} n_i
+            P\left(\left(n_1,\dotsc,n_{j-1},0,n_{j+1},\dotso,n_N\right)^T,t\right)
+            \\
+            & - \underbrace{\sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_i} n_i
+        P\left(n_i,n_j = 0,t\right)}_{\text{not sure about this}}
+        \end{align*}
+\end{itemize}
+
+\subsection{System of equations}
+Let \(Y_i(t) = \E{n_i}(t), \V{Y}(t) = (Y_1(t),\dotsc,Y_N(t))^T\). Then,
+collecting all the terms above and organising the system of equations in matrix
+form, we obtain (ignoring all the ``not sure about this'' terms)
+\begin{subequations}
+    \label{eqn:exp_equation_system}
+    \begin{gather}
+        \diff{\V{Y}}{t} = A \V{Y}(t) + \V{b},
+        \intertext{where}
+        A=
+        \begin{pmatrix}
+            -(a+b) & a & 0 & \dots & \dots & \dots & 0\\
+            (a+b)  & -(2a+b) & a & 0 & \dots & \dots & 0\\
+            0 & (a+b) & -(2a+b) & a & 0 & \dotsb & 0\\
+            \vdots & & \ddots & \ddots & \ddots & & \vdots\\
+            0 & \dots & \dots & (a+b) & -(2a+b) & a & 0\\
+            0 & \dots & \dots & 0 & (a+b) & -(2a+b) & a\\
+            0 & \dots & \dots & \dots & 0 & (a+b) & -a
+        \end{pmatrix}
+        \intertext{and}
+        \V{b}=
+        \begin{pmatrix}
+            c-S_1\\
+            -S_2\\
+            \vdots\\
+            -S_{N-1}\\
+            -d-S_N
+        \end{pmatrix}
+    \end{gather}
+\end{subequations}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/num_sol_exp_eq_wrong}
+    \caption{\label{fig:num_sol_exp_eq_wrong}Numerical solution of
+    equations~\eqref{eqn:exp_equation_system} with
+\(N=10,a=1,b=0.5,c=10,d=10,S_i=0,i=1,\dotsc,N\)}
+\end{figure}
 
 \bibliography{references}
 
