@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 
     // Output the initial state
 
-    outfile << time;
+    outfile << 0 << " " << time;
     for(unsigned j = 0; j < n_urns; j++)
     {
         outfile << " " << n[j];
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
         // output exceeds the new actual time (t+dt)
         for(unsigned l = k+1; l*output_interval < time+dt; l++)
         {
-            outfile << l*output_interval;
+            outfile << l << " " << l*output_interval;
 
             for(unsigned j = 0; j < n_urns; j++)
             {
