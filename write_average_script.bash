@@ -1,4 +1,7 @@
 #!/bin/bash
+# $1 - t_max
+# $2 - n_urns
+# $3 - number of realisations
 echo "cat output*.dat | awk '"
 echo "BEGIN {"
 echo "for (i = 0; i <= $1; i++)"
