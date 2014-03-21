@@ -209,16 +209,16 @@ int main(int argc, char **argv)
         T0 += T_inflow;
 
         // Outflow (can only remove a particle if the last urn is non-empty)
-        //if(n[n_urns-1] > 0)
-        //{
+        if(n[n_urns-1] > 0)
+        {
             T[n_hop_left + n_hop_right + n_removal + n_inflow] =
-                T_outflow*n[n_urns-1];
-            T0 += T_outflow*n[n_urns-1];
-        //}
-        //else
-        //{
-        //    T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
-        //}
+                T_outflow; //*n[n_urns-1];
+            T0 += T_outflow; //*n[n_urns-1];
+        }
+        else
+        {
+            T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
+        }
 
         // Calculate the probabilities of all events
         for(unsigned j = 0; j < n_events; j++)
