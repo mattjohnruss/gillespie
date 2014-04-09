@@ -88,10 +88,10 @@ int main(int argc, char **argv)
     //std::ofstream testoutfile("testoutput.dat");
 
     // Declare the storage for the urns
-    std::vector<unsigned> n(n_urns,0);
+    std::vector<unsigned> n(n_urns,100);
 
     // Add n_init molecules to the first urn
-    n[0] = n_init;
+    //n[0] = n_init;
 
     // Uniform random number generator
     boost::mt19937 rng(time(0) + getpid());
