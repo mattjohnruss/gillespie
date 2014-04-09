@@ -80,8 +80,8 @@ The Gillespie algorithm is as follows:
     \item Calculate the rate \(T_i\) for each of the \(M\) events
     \item Set \(T_0 = \sum_{i=1}^M T_i\)
     \item Generate a uniformly random real number \(r\), such that \(0 \le r \le 1\)
-    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. a \(\delta
-        t\) is drawn from an exponential distribution)
+    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. \(\delta t\)
+        is drawn from an exponential distribution)
     \item Choose a event randomly from the discrete distribution such that
         probability of drawing event \(k\) is \(T_k/T_0\), for \(1 \le k \le
         M\)
@@ -106,8 +106,8 @@ particle (corresponding to sinks) by the following set of events:
         \(n_i \leftarrow n_i - 1\) & \multirow{2}{*}{\(N-1\)} \\
         & & \(n_{i+1} \leftarrow n_{i+1} + 1\) \\ \hline
         Inflow & \(T\Sst{in} = c\) & \(n_1 \leftarrow n_1 + 1\) & \(1\) \\ \hline
-        Outflow & \(T\Sst{out} = d n_N\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
-        Removal & \(T\Sst{rem}_i = s_i\) & \(n_i \leftarrow n_i - 1\) & \(N\) \\
+        Outflow & \(T\Sst{out} = d H(n_N)\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
+        Removal & \(T\Sst{rem}_i = s_i H(n_i)\) & \(n_i \leftarrow n_i - 1\) & \(N\) \\
     \end{tabular}
     \caption{\label{tab:transport_events}Definitions of the different types of
 events in the solute transport system}
@@ -118,11 +118,22 @@ different event types.
 The constants \(a,b,c,d\) and the \(s_i\) are parameters which must be
 specified, corresponding to the rates (?) of diffusion, advection, inflow,
 outflow and removal (from urn \(i\)), respectively. (Maybe it only makes sense to have
-\(d=a+b\)?)
+\(d=a+b\)?). The rates for outflow and removal are (currently) modelling
+zeroth-order kinetics and to avoid the possibility of removal when an urn is
+empty, the rates involve the discrete Heaviside function, defined
+here as
+\begin{equation*}
+    H(n) =
+    \begin{dcases*}
+        1 & if \(n \ge 1\)\\
+        0 & if \(n < 1\)
+    \end{dcases*}
+\end{equation*}
 
-There are \(M=2(N-1) + 2 + N = 3N\) events in total. Note that since
-the removal rate is a constant this corresponds to zero-order kinetics, where
-the removal rate does not depend on the number of particles in the urn.
+There are \(M=2(N-1) + 2 + N = 3N\) events in total.
+%Note that since
+%the removal rate is a constant this corresponds to zero-order kinetics, where
+%the removal rate does not depend on the number of particles in the urn.
 
 \begin{figure}[ht!]
     \centering
@@ -607,6 +618,9 @@ form, we obtain (ignoring all the ``not sure about this'' terms)
     equations~\eqref{eqn:exp_equation_system} with
 \(N=10,a=1,b=0.5,c=10,d=10,S_i=0,i=1,\dotsc,N\)}
 \end{figure}
+
+\section{Analysis of the mean-field equations}
+
 
 \bibliography{references}
 
