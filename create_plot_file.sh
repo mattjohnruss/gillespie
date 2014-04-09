@@ -10,7 +10,7 @@ else
 fi
 
 echo "unset key" > all.plot
-echo -n "replot file $every u 1:2 w l" >> all.plot
+echo -n "plot file $every u 1:2 w l" >> all.plot
 
 n=$(echo "$1 + 1" | bc)
 
