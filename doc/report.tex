@@ -243,6 +243,13 @@ to state \(\V{n}\). Then the master equation is \citep{mckane2012stochastic}
         P(\V{n}',t) - T(\V{n}'|\V{n}) P(\V{n},t) \right].
 \end{equation}
 
+Here, \(P(\V{n},t)\) is defined as the conditional probability of finding the
+system in state \(V{n}\) at time \(t\) given the initial condition that at time
+\(t_0\), the system was in state \(\V{n}_0\). Or,
+\begin{equation*}
+    P(\V{n},t) = P(\V{n},t | \V{n}_0, t_0).
+\end{equation*}
+
 \subsection{Solute transport}
 For the above problem of solute transport, the transition rates in
 table~\ref{tab:transport_events} can be combined into a single object using the
@@ -256,8 +263,8 @@ notation introduced in the previous section:
             (a+b) n'_i & for \(\V{n} = \V{n}' - \V{e}_i + \V{e}_{i+1},
             i=1,\dotsc,N-1\)\\
             c & for \(\V{n} = \V{n}' + \V{e}_1\)\\
-            d & for \(\V{n} = \V{n}' - \V{e}_N\)\\
-            S_i & for \(\V{n} = \V{n}' - \V{e}_i, i=1,\dotsc,N-1\)\\
+            d H(n'_N) & for \(\V{n} = \V{n}' - \V{e}_N\)\\
+            S_i H(n'_i) & for \(\V{n} = \V{n}' - \V{e}_i, i=1,\dotsc,N-1\)\\
             0 & otherwise
         \end{dcases*}
         %\right.,
@@ -289,12 +296,12 @@ of event separately.
     \item Outflow (\(\V{n} = \V{n}' - \V{e}_N\)):
         \begin{equation}
             \label{eqn:trans_me_out_term}
-            dP(\V{n} + \V{e}_N,t) - d P(\V{n},t)
+            d H(n_N + 1) P(\V{n} + \V{e}_N,t) - d H(n_N) P(\V{n},t)
         \end{equation}
     \item Removal (\(\V{n} = \V{n}' - \V{e}_i\)):
         \begin{equation}
             \label{eqn:trans_me_rem_term}
-            \sum_{i=1}^N \left[ S_i P(\V{n} + \V{e}_i,t) - S_i P(\V{n},t)
+            \sum_{i=1}^N \left[ S_i H(n_i + 1) P(\V{n} + \V{e}_i,t) - S_i H(n_i) P(\V{n},t)
                 \right]
         \end{equation}
 \end{itemize}
@@ -310,8 +317,9 @@ obtain the master equation for this system:
             +&\sum_{i=1}^{N-1} \left[(a+b)(n_i+1) P(\V{n} + \V{e}_i -
                 \V{e}_{i+1},t) - (a+b)n_i P(\V{n},t) \right]\\
             +&cP(\V{n} - \V{e}_1,t) - c P(\V{n},t)\\
-            +&dP(\V{n} + \V{e}_N,t) - d P(\V{n},t)\\
-            +&\sum_{i=1}^N \left[ S_i P(\V{n} + \V{e}_i,t) - S_i P(\V{n},t)
+            +&d H(n_N + 1) P(\V{n} + \V{e}_N,t) - d H(n_N) P(\V{n},t)\\
+            +&\sum_{i=1}^N \left[ S_i H(n_i + 1) P(\V{n} + \V{e}_i,t) - S_i
+                H(n_i) P(\V{n},t)
                 \right].
     \end{split}
 \end{equation}
@@ -359,10 +367,10 @@ Substituting the expression \eqref{eqn:trans_me} into the above,
     \left[c P(\V{n} - \V{e}_1,t) - c P(\V{n},t)\right] \\
     \label{eqn:trans_expectation_out_term}
     + & \sum_\V{n} n_i
-    \left[d P(\V{n} + \V{e}_N,t) - d P(\V{n},t)\right] \\
+    \left[d H(n_N+1) P(\V{n} + \V{e}_N,t) - d H(n_N) P(\V{n},t)\right] \\
     \label{eqn:trans_expectation_rem_term}
     + & \sum_\V{n} n_i \sum_{j=1}^{N}
-    \left[S_i P(\V{n} + \V{e}_j,t) - S_j P(\V{n},t)\right]
+    \left[S_j H(n_j + 1) P(\V{n} + \V{e}_j,t) - S_j H(n_j) P(\V{n},t)\right]
 \end{align}
 \end{subequations}
 
@@ -440,7 +448,7 @@ other cases is a combination of these.
                 & \sum_{n_1} \dotso \sum_{n_N} n_N \left(n_2 + n_3 +
                 \dotsb + n_{N-1} + (n_N - 1)\right)
                 P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_N} \dotso \sum_{n_N} n_1\left(n_2 + n_3 + \dotsb +
+                - & \sum_{n_1} \dotso \sum_{n_N} n_N\left(n_2 + n_3 + \dotsb +
                 n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
             \biggr\} \\
             = - a & \sum_{n_1} \dotsb \sum_{n_N} n_N
@@ -522,27 +530,27 @@ terms above. The general expression for all \(i\):
                 ,n_2,\dotsc,n_{N-1},0\right)^T,t\right)
             \biggr\} \\
             = -d \biggl\{
-                & 1 - \underbrace{P(n_N=0,t)}_{\text{not sure about
-                this}}
+                & 1 - P(n_N=0,t)
             \biggr\}
         \end{align*}
     \item \(i \ne N\).
-        \begin{align*}
-            d \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
-                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = d \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_i P\left(\left(n_1
-                ,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = -d & \underbrace{\sum_{n_i} n_i P(n_i,n_N=0,t)}_{\text{not sure about
-                this}}
-        \end{align*}
+        All terms cancel in this case due to the Heaviside function in the rates, so the result is 0.
+        %\begin{align*}
+        %    d \biggl\{
+        %        & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+        %        ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+        %        - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+        %        ,n_2,\dotsc,n_N\right)^T,t\right)
+        %    \biggr\} \\
+        %    = d \biggl\{
+        %        & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_i P\left(\left(n_1
+        %        ,\dotsc,n_N\right)^T,t\right) \\
+        %        - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+        %        ,n_2,\dotsc,n_N\right)^T,t\right)
+        %    \biggr\} \\
+        %    = -d & \underbrace{\sum_{n_i} n_i P(n_i,n_N=0,t)}_{\text{not sure about
+        %        this}}
+        %\end{align*}
 \end{itemize}
 
 \paragraph{Removal~\eqref{eqn:trans_expectation_rem_term}}
@@ -565,25 +573,26 @@ terms above. The general expression for all \(i\):
                 P\left(\left(n_1,n_2,\dotsc,n_{i-1},0,n_{i+1},\dotso,n_N\right)^T,t\right)
             \biggr\}\\
             = S_i \biggl\{
-                & -1 + \underbrace{P(n_i=0,t)}_{\text{not sure
-                about this}}
+                & -1 + P(n_i=0,t)
             \biggr\}
         \end{align*}
     \item \(i \ne j\) terms.
-        \begin{align*}
-            & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_1} \dotso
-            \sum_{n_{j-1}} \sum_{n_{j+1}} \dotso \sum_{n_N} n_i
-            P\left(\left(n_1,\dotsc,n_{j-1},0,n_{j+1},\dotso,n_N\right)^T,t\right)
-            \\
-            & - \underbrace{\sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_i} n_i
-        P\left(n_i,n_j = 0,t\right)}_{\text{not sure about this}}
-        \end{align*}
+        All terms cancel in the same way as the outflow case.
+        %\begin{align*}
+        %    & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_1} \dotso
+        %    \sum_{n_{j-1}} \sum_{n_{j+1}} \dotso \sum_{n_N} n_i
+        %    P\left(\left(n_1,\dotsc,n_{j-1},0,n_{j+1},\dotso,n_N\right)^T,t\right)
+        %    \\
+        %    & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_i} n_i
+        %P\left(n_i,n_j = 0,t\right)
+        %\end{align*}
 \end{itemize}
 
 \subsection{System of equations}
 Let \(Y_i(t) = \E{n_i}(t), \V{Y}(t) = (Y_1(t),\dotsc,Y_N(t))^T\). Then,
 collecting all the terms above and organising the system of equations in matrix
-form, we obtain (ignoring all the ``not sure about this'' terms)
+form, we obtain (neglecting the terms relating to the probability of the
+number of particles in one urn to be 0).
 \begin{subequations}
     \label{eqn:exp_equation_system}
     \begin{gather}
@@ -619,7 +628,109 @@ form, we obtain (ignoring all the ``not sure about this'' terms)
 \(N=10,a=1,b=0.5,c=10,d=10,S_i=0,i=1,\dotsc,N\)}
 \end{figure}
 
+\FloatBarrier
 \section{Analysis of the mean-field equations}
+In order to analyse the mean-field equations, we consider a 1-urn pure-death
+process with death rate \(s H(n)\), where \(n\) is the number of particles in
+the urn. This simple process contains many of the difficult features of the full
+process above. In this case the master equation consists of the following system:
+
+\begin{align*}
+    \diff{p_0}{t} =& s p_1\\
+    \diff{p_i}{t} =& s p_{i+1} - s p_i, \quad i = 2,\dotsc,N-1\\
+    \diff{p_N}{t} =& - s p_N
+\end{align*}
+with the initial condition
+\begin{equation}
+    \label{eqn:pure_death_ic}
+    p_i(t=0) = \delta_{iN}
+\end{equation}
+This means that there are surely \(N\) particles in the system at \(t=0\). We
+are using the notation \(p_n(t)\) to denote the probability of there being \(n\)
+particles in the urn at time \(t\).  Analogously to above, the deterministic
+mean-field equation can be derived for this process:
+\begin{equation*}
+    \diff{\E{n}(t)}{t} = -s \left(1-p_0(t)\right).
+\end{equation*}
+As before, this equation is not closed. Therefore we cannot solve it exactly.
+Assuming that \(p_0(t)\) is sufficiently smooth at \(t=0\), we can replace it
+with its Taylor series around \(t=0\):
+\begin{equation*}
+    -s(1-p_0(t)) = -s\left(1 - \left[p_0(0) + \dot{p_0}(0)t +
+    \frac{1}{2}\ddot{p_0}(0)t^2 + \dotsb \right] \right).
+\end{equation*}
+
+We have that \(p_0(0) = 0\) due to the initial condition. For the second term in
+the series,
+\begin{equation*}
+    \dot{p_0}(0) = \left.(s(p_1)\right|_{t=0} = sp_1(0) = 0.
+\end{equation*}
+Similarly, for the next term,
+\begin{align*}
+    \ddot{p_0}(0) &= \left.\left(\diff{}{t}\dot{p_0}\right)\right|_{t=0}\\
+    &= \left.\left(\diff{}{t}\left[s p_1\right]\right)\right|_{t=0}\\
+    &= s^2\left(p_2(0) - p_1(0)\right) = 0.
+\end{align*}
+Continuing like this, we find that the derivatives of \(p_0(t)\) follow this
+pattern:
+\begin{equation*}
+    p_0^{(i)}(t) = (-1)^i s^i \sum_{j=0}^{i-1}(-1)^j
+    \binom{i-1}{j} p_{1+j}(t),
+\end{equation*}
+for \(i=1,\dotsc,N-1\).
+Due to the initial condition \eqref{eqn:pure_death_ic}, we have that every
+derivative is equal to \(0\) for \(i=1,\dotsc,N-1\). The expression for
+\(i=N-1\) is
+\begin{align*}
+    p_0^{(N-1)}(t) &= (-1)^{N-1} s^{N-1} \left\{ p_1(t) - \binom{N-2}{1}p_2(t) +
+    \dotsc \right.\\
+    &\left.+ (-1)^{N-3} \binom{N-2}{N-3} p_{N-2}(t) +
+    (-1)^{N-2}p_{N-1}(t)\right\}.
+\end{align*}
+Then we have
+\begin{align*}
+    p_0^{(N)}(t) &= (-1)^{N-1} s^{N-1} \left\{ \dot{p_1}(t) -
+    \binom{N-2}{1}\dot{p_2}(t) +
+    \dotsc \right.\\
+    &\left.+ (-1)^{N-3} \binom{N-2}{N-3} \dot{p_{N-2}}(t) +
+    (-1)^{N-2}\dot{p_{N-1}}(t)\right\}\\
+    &= (-1)^{N-1} s^{N} \left\{ (p_2-p_1) -
+    \binom{N-2}{1}(p_3-p_2) +
+    \dotsc \right.\\
+    &\left.+ (-1)^{N-3} \binom{N-2}{N-3} (p_{N-1} - p_{N-2}) +
+    (-1)^{N-2} (p_N - p_{N-1})\right\}.
+\end{align*}
+Therefore
+\begin{align*}
+    p_0^{(N)}(0) &= (-1)^{N-1} (-1)^{N-2} s^N p_N\\
+    &= (-1)^{2N-3} s^N
+\end{align*}
+
+Putting this together, we find that the Taylor series for \(-s(1-p_0)\) around
+\(t=0\) is
+\begin{align*}
+    -s(1-p_0) = -s\left(1 - \left[ \frac{1}{N!}(-1)^{2N-3}s^N t^N + \dotsb
+    \right] \right).
+\end{align*}
+
+From this we can see that \(p_0(t)\) grows like \(t^N\). Also, the first term is
+scaled by a factor of \(\frac{s^N}{N!}\), which, for large \(N\) is very small.
+
+\section{Todo/problems}
+\begin{itemize}
+    \item Get to the bottom of the non-closed system for the mean-field
+        \begin{itemize}
+            \item The problem is caused by the ``nonlinear'' transition rates
+                (i.e. not a linear function of \(n\)) which gives us an
+                absorbing boundary at \(n=0\)
+            \item Looked at generating functions, ``limbo states'' etc. and
+                these don't seem to solve the problem in this case
+            \item Might be more feasible to use a continuous description
+                (something like Fokker-Planck)
+        \end{itemize}
+    \item Read about Fokker-Planck equations and related
+    \item Try to derive continuous version of the multiple urns problem
+\end{itemize}
 
 
 \bibliography{references}
