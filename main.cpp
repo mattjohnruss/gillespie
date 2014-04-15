@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     //std::ofstream testoutfile("testoutput.dat");
 
     // Declare the storage for the urns
-    std::vector<unsigned> n(n_urns,100);
+    std::vector<unsigned> n(n_urns,0);
 
     // Add n_init molecules to the first urn
     //n[0] = n_init;
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
     unsigned k = 0;
 
     // Timestepping loop
-    while(time < t_max && total_particles > 0)
+    while(time < t_max)
     {
         // Reset T0
         T0 = 0;
@@ -190,15 +190,15 @@ int main(int argc, char **argv)
 
             // Assign the rates of removal events (have to do this in the loop
             // since removal can only occur if the urn is non-empty!)
-            if(n[j] > 0)
-            {
-                T[n_hop_left + n_hop_right + j] = T_removal[j];
+            //if(n[j] > 0)
+            //{
+                T[n_hop_left + n_hop_right + j] = T_removal[j]*n[j];
                 T0 += T_removal[j];
-            }
-            else
-            {
-                T[n_hop_left + n_hop_right + j] = 0;
-            }
+            //}
+            //else
+            //{
+            //    T[n_hop_left + n_hop_right + j] = 0;
+            //}
 
             // Calculate total_particles
             total_particles += n[j];
@@ -209,16 +209,16 @@ int main(int argc, char **argv)
         T0 += T_inflow;
 
         // Outflow (can only remove a particle if the last urn is non-empty)
-        if(n[n_urns-1] > 0)
-        {
+        //if(n[n_urns-1] > 0)
+        //{
             T[n_hop_left + n_hop_right + n_removal + n_inflow] =
-                T_outflow; //*n[n_urns-1];
-            T0 += T_outflow; //*n[n_urns-1];
-        }
-        else
-        {
-            T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
-        }
+                T_outflow*n[n_urns-1];
+            T0 += T_outflow*n[n_urns-1];
+        //}
+        //else
+        //{
+        //    T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
+        //}
 
         // Calculate the probabilities of all events
         for(unsigned j = 0; j < n_events; j++)
@@ -316,6 +316,11 @@ int main(int argc, char **argv)
 
         // Increment time with the timestep
         time += dt;
+
+        if(total_particles == 0)
+        {
+            break;
+        }
 
         //// Full output for testing
 
