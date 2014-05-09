@@ -255,7 +255,7 @@ For the above problem of solute transport, the transition rates in
 table~\ref{tab:transport_events} can be combined into a single object using the
 notation introduced in the previous section:
 \begin{equation}
-    \label{eqn:}
+    \label{eqn:transition_rates_zeroth_order}
     T(\V{n}|\V{n}') =% \left\{
         \begin{dcases*}
             a n'_{i+1} & for \(\V{n} = \V{n}' + \V{e}_i - \V{e}_{i+1},
@@ -593,7 +593,7 @@ collecting all the terms above and organising the system of equations in matrix
 form, we obtain (neglecting the terms relating to the probability of the
 number of particles in one urn to be 0).
 \begin{subequations}
-    \label{eqn:exp_equation_system}
+    \label{eqn:exp_equation_system_zeroth}
     \begin{gather}
         \diff{\V{Y}}{t} = A \V{Y}(t) + \V{b},
         \intertext{where}
@@ -623,7 +623,7 @@ number of particles in one urn to be 0).
     \centering
     \includegraphics[width=0.8\textwidth]{figures/num_sol_exp_eq_wrong}
     \caption{\label{fig:num_sol_exp_eq_wrong}Numerical solution of
-    equations~\eqref{eqn:exp_equation_system} with
+    equations~\eqref{eqn:exp_equation_system_zeroth} with
 \(N=10,a=1,b=0.5,c=10,d=10,S_i=0,i=1,\dotsc,N\)}
 \end{figure}
 
@@ -715,12 +715,56 @@ Putting this together, we find that the Taylor series for \(-s(1-p_0)\) around
 From this we can see that \(p_0(t)\) grows like \(t^N\). Also, the first term is
 scaled by a factor of \(\frac{s^N}{N!}\), which, for large \(N\) is very small.
 
+\section{First order kinetics}
+If we now assume that outflow and removal of particles obey first order
+kinetics, their respective transition rates become \(d n'_N\) and \(S_i n'_i\).
+The other rates in \eqref{eqn:transition_rates_zeroth_order} remain the same.
+Therefore the only terms that change are those that correspond to removal and
+outflow.
+
+Working through the algebra analogous to the above, one obtains the following
+linear system determining for the mean field:
+
+\begin{subequations}
+    \label{eqn:exp_equation_system_first}
+    \begin{gather}
+        \diff{\V{Y}}{t} = A \V{Y}(t) + \V{b},
+        \intertext{where}
+        A=
+        \begin{pmatrix}
+            -(a+b) - S_1 & a & 0 & \dots & \dots & \dots & 0\\
+            (a+b)  & -(2a+b) - S_2 & a & 0 & \dots & \dots & 0\\
+            \vdots & & \ddots & \ddots & \ddots & & \vdots\\
+            0 & \dots & \dots & 0 & (a+b) & -(2a+b) - S_{N-1} & a\\
+            0 & \dots & \dots & \dots & 0 & (a+b) & -a -S_N - d
+        \end{pmatrix}
+        \intertext{and}
+        \V{b}=
+        \begin{pmatrix}
+            c\\
+            0\\
+            \vdots\\
+            0
+        \end{pmatrix}
+    \end{gather}
+\end{subequations}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics{figures/firstorderrealisation}
+    \caption{\label{fig:ex_first_order_real} Comparison between the time evolution of
+the sample means of the number of particles in each urn and the mean field
+approximation with first order removal kinetics.
+\(N=10,a=1,b=0.5,c=10,d=10,S_i=0\).}
+\end{figure}
+
 \section{Todo/problems}
 \begin{itemize}
-    \item Get to the bottom of the non-closed system for the mean-field
+    \item Finish/write up about the variance for first order kinetics
+    \item (Get to the bottom of the non-closed system for the mean-field)
         \begin{itemize}
             \item The problem is caused by the ``nonlinear'' transition rates
-                (i.e. not a linear function of \(n\)) which gives us an
+                (i.e. not a linear function (in the polynomial sense) of \(n\)) which gives us an
                 absorbing boundary at \(n=0\)
             \item Looked at generating functions, ``limbo states'' etc. and
                 these don't seem to solve the problem in this case
