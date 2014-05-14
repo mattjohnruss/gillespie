@@ -153,8 +153,8 @@ int main(int argc, char **argv)
 
     for(unsigned j = 0; j < n_nodes; j++)
     {
-        mean_file << nodes[j] << " ";
-        variance_file << nodes[j] << " ";
+        mean_file << nodes[j];
+        variance_file << nodes[j];
 
         for(unsigned field = 0; field < n_fields; field++)
         {
@@ -167,10 +167,10 @@ int main(int argc, char **argv)
             mean[j][field] *= inv_n_files;
             mean_of_squares[j][field] *= inv_n_files;
 
-            mean_file << mean[j][field] << " ";
+            mean_file << " " << mean[j][field];
 
-            variance_file << bias_correction*(mean_of_squares[j][field] - pow(mean[j][field],2))
-                          << " ";
+            variance_file << " "
+                          << bias_correction*(mean_of_squares[j][field] - pow(mean[j][field],2));
         }
 
         mean_file << std::endl;
