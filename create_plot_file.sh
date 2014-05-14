@@ -10,11 +10,11 @@ else
 fi
 
 echo "unset key" > all.plot
-echo -n "plot file $every u 1:2 w l" >> all.plot
+echo -n "plot file $every u 1:2 w l ti \"1\" at end" >> all.plot
 
 n=$(echo "$1 + 1" | bc)
 
 for i in $(seq 3 $n)
 do
-    echo -n ", file $every u 1:$i w l" >> all.plot
+    echo -n ", file $every u 1:$i w l ti \"$[$i-1]\" at end" >> all.plot
 done
