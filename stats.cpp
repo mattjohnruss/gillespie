@@ -146,7 +146,9 @@ int main(int argc, char **argv)
     std::vector<std::vector<double> > variance(n_nodes, std::vector<double>(n_fields,0.));
 
     double inv_n_files = 1./(double)n_files;
-    double bias_correction = (double)n_files/(double)(n_files+1);
+
+    // Calculate bias correction for the variance
+    double bias_correction = (double)n_files/(double)(n_files-1);
 
     std::ofstream mean_file((file_prefix + "_mean.dat").c_str());
     std::ofstream variance_file((file_prefix + "_variance.dat").c_str());
