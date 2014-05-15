@@ -12,18 +12,26 @@ int main(int argc, char **argv)
     // Parse command line arguments
     // ----------------------------
 
+    // If we don't have the required number of arguments print a message and exit
     if(argc != 3)
     {
         std::cout << "Usage: " << argv[0] << " n_files file_prefix\n";
         exit(1);
     }
 
+    // The number of files (sample size)
     unsigned n_files;
+
+    // Prefix that each file name begins with
     std::string file_prefix;
 
+    // Stream for program arguments
     std::istringstream args_stream(argv[1]);
+
+    // Put the first argument into n_files
     args_stream >> n_files;
 
+    // Clear the stream and put the second argument into file_prefix
     args_stream.str("");
     args_stream.clear();
     args_stream.str(argv[2]);
@@ -145,30 +153,42 @@ int main(int argc, char **argv)
     std::vector<std::vector<double> > mean_of_squares(n_nodes, std::vector<double>(n_fields,0.));
     std::vector<std::vector<double> > variance(n_nodes, std::vector<double>(n_fields,0.));
 
+    // Calculate 1/n_files
     double inv_n_files = 1./(double)n_files;
-    double bias_correction = (double)n_files/(double)(n_files+1);
 
+    // Calculate bias correction for the variance
+    double bias_correction = (double)n_files/(double)(n_files-1);
+
+    // File streams for mean and variance
     std::ofstream mean_file((file_prefix + "_mean.dat").c_str());
     std::ofstream variance_file((file_prefix + "_variance.dat").c_str());
 
+    // Loop over the nodes
     for(unsigned j = 0; j < n_nodes; j++)
     {
+        // Output the node locations (once per node)
         mean_file << nodes[j];
         variance_file << nodes[j];
 
+        // Loop over the fields
         for(unsigned field = 0; field < n_fields; field++)
         {
+            // Loop over the files
             for(unsigned f = 0; f < n_files; f++)
             {
+                // Add the value from each file (i.e. sample) to the mean and mean_of_squares
                 mean[j][field] += data[f][j][field];
                 mean_of_squares[j][field] += pow(data[f][j][field],2);
             }
 
+            // Divide by the number of files (samples)
             mean[j][field] *= inv_n_files;
             mean_of_squares[j][field] *= inv_n_files;
 
+            // Output the mean
             mean_file << " " << mean[j][field];
 
+            // Output the variance
             variance_file << " "
                           << bias_correction*(mean_of_squares[j][field] - pow(mean[j][field],2));
         }
@@ -177,8 +197,8 @@ int main(int argc, char **argv)
         variance_file << std::endl;
     }
 
+    // Close the mean and variance files
     mean_file.close();
-
     variance_file.close();
 
     //unsigned n_lines;
