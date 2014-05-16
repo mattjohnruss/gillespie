@@ -250,6 +250,50 @@ system in state \(V{n}\) at time \(t\) given the initial condition that at time
     P(\V{n},t) = P(\V{n},t | \V{n}_0, t_0).
 \end{equation*}
 
+\subsection{Jump moments}
+In order to simplify the derivation from the master equation of moments of the
+probability distribution, we can introduce the discrete multivariate jump
+moments. To motivate their definition we take the time derivative of the
+expectation of the \(i\)-th random variable as follows.
+\begin{align*}
+    \diff{\E{n_i}}{t} &= \diff{}{t}\sum_{\V{n}}n_i P(\V{n},t)\\
+    &= \sum_{\V{n}}n_i \diff{P(\V{n},t)}{t}\\
+    &= \adjustlimits\sum_{\V{n}}\sum_{\V{n}'} n_i \left[ T(\V{n}|\V{n}') P(\V{n}',t) -
+    T(\V{n}'|\V{n}) P(\V{n},t)\right]\\
+    &= \adjustlimits\sum_{\V{n}}\sum_{\V{n}'} n_i T(\V{n}|\V{n}') P(\V{n}',t) -
+    \adjustlimits\sum_{\V{n}}\sum_{\V{n}'} n_i T(\V{n}'|\V{n}) P(\V{n},t)\\
+    &= \adjustlimits\sum_{\V{n}}\sum_{\V{n}'} n_i' T(\V{n}'|\V{n}) P(\V{n},t) -
+    \adjustlimits\sum_{\V{n}}\sum_{\V{n}'} n_i T(\V{n}'|\V{n}) P(\V{n},t)\\
+    &= \adjustlimits\sum_{\V{n}}\sum_{\V{n}'} (n_i' - n_i) T(\V{n}'|\V{n})
+    P(\V{n},t),
+\end{align*}
+where we have substituted in the master equation \eqref{eqn:master_eqn_rates}.
+This suggests that we define
+\begin{equation}
+    \begin{gathered}
+        a_{\nu i}(\V{n}) = \sum_{\V{n}} (n_i'-n_i)^\nu T(\V{n}'|\V{n})\\
+        (\nu = 0,1,2,\dotsc,\quad i=1,2,\dotsc)
+    \end{gathered}
+    \label{eqn:jump_moment}
+\end{equation}
+since then we have
+\begin{equation}
+    \diff{\E{n_i}}{t} = \E{a_{1i}(\V{n})}.
+    \label{eqn:time_evo_expectation_jump_moment}
+\end{equation}
+
+\subsubsection{Linear jump moments}
+Now assume that we can write the \(\nu\)-th jump moment as a linear function of
+\(\V{n}\), i.e. that
+\begin{equation*}
+    a_{\nu i}(\V{n}) = \sum_{j=1}^{N} \alpha_{\nu i j} n_j + \beta_{\nu i},
+\end{equation*}
+for constants \(\alpha_{\nu i j}, \beta_{\nu i}\).
+Then, by linearity of the expectation, we have
+\begin{equation}
+    \E{a_{\nu i}(\V{n})} = a_{\nu i}(\E{\V{n}})
+\end{equation}
+
 \subsection{Solute transport}
 For the above problem of solute transport, the transition rates in
 table~\ref{tab:transport_events} can be combined into a single object using the
@@ -636,7 +680,7 @@ process above. In this case the master equation consists of the following system
 
 \begin{align*}
     \diff{p_0}{t} =& s p_1\\
-    \diff{p_i}{t} =& s p_{i+1} - s p_i, \quad i = 2,\dotsc,N-1\\
+    \diff{p_i}{t} =& s p_{i+1} - s p_i, \quad i = 1,\dotsc,N-1\\
     \diff{p_N}{t} =& - s p_N
 \end{align*}
 with the initial condition
@@ -774,6 +818,7 @@ approximation with first order removal kinetics.
     \item Read about Fokker-Planck equations and related
     \item Try to derive continuous version of the multiple urns problem
 \end{itemize}
+
 
 
 \bibliography{references}
