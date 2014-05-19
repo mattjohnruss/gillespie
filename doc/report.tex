@@ -278,9 +278,10 @@ This suggests that we define
 \end{equation}
 since then we have
 \begin{equation}
-    \diff{\E{n_i}}{t} = \E{a_{1i}(\V{n})}.
+    \diff{\E{n_i}}{t} = \E{a_{1i}(\V{n})},
     \label{eqn:time_evo_expectation_jump_moment}
 \end{equation}
+and we call \(a_{\nu i}(\V{n})\) the \emph{\(\nu\)-th jump moment of \(n_i\)}.
 
 \subsubsection{Linear jump moments}
 Now assume that we can write the \(\nu\)-th jump moment as a linear function of
@@ -292,9 +293,71 @@ for constants \(\alpha_{\nu i j}, \beta_{\nu i}\).
 Then, by linearity of the expectation, we have
 \begin{equation}
     \E{a_{\nu i}(\V{n})} = a_{\nu i}(\E{\V{n}})
+    \label{eqn:linear_jump_moments}
 \end{equation}
 
-\subsection{Solute transport}
+\subsubsection{Second moments}
+We can perform the same trick for the second raw moment as we did for the
+expectation, by which we obtain
+\begin{equation}
+    \begin{aligned}
+        \diff{\E{n_i^2}}{t} &= \diff{}{t} \sum_{\V{n}} n_i^2 P(\V{n},t)\\
+        &= \sum_{\V{n}} n_i^2 \diff{P(\V{n},t)}{t}\\
+        &= \adjustlimits\sum_{\V{n}} \sum_{\V{n}'} ({n_i'}^2 - n_i^2) T(\V{n}' |
+        \V{n}) P(\V{n},t)\\
+        &= \adjustlimits\sum_{\V{n}} \sum_{\V{n}'} \left[ (n_i' - n_i)^2 + 2n_i(n_i'
+        - n_i) \right] T(\V{n}' | \V{n}) P(\V{n},t)\\
+        &= \E{a_{2i}(\V{n})} + 2 \E{n_i a_{1i}(\V{n})},
+    \end{aligned}
+    \label{eqn:time_evo_second_moment_jump_moment}
+\end{equation}
+which is an exact expression involving the first and second jump moments.
+
+For the time evolution of the variance, \(\sigma_i^2 = \E{n_i^2} - \E{n_i}^2\),
+we can combine the results in \eqref{eqn:time_evo_expectation_jump_moment} and
+\eqref{eqn:time_evo_second_moment_jump_moment}:
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_i^2}{t} &= \diff{\E{n_i^2}}{t} - 2 \E{n_i}\diff{\E{n_i}}{t}\\
+        &= \E{a_{2i}(\V{n})} + 2\left( \E{n_i a_{1i}(\V{n})} - \E{n_i}
+        \E{a_{1i}(\V{n})} \right),
+    \end{aligned}
+    \label{eqn:time_evo_variance_jump_moment}
+\end{equation}
+which is again an exact expression.
+
+In the case that the first and second jump moments are both linear, hence
+satisfying \eqref{eqn:linear_jump_moments}, we can write
+\begin{equation*}
+    a_{1i}(\V{n}) = \sum_{j=1}^N \alpha_{1ij} n_j + \beta_{1i}, \quad
+    a_{2i}(\V{n}) = \sum_{j=1}^N \alpha_{2ij} n_j + \beta_{2i}.
+\end{equation*}
+Substituting into \eqref{eqn:time_evo_variance_jump_moment} gives
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_i^2}{t} &= a_{2i}(\E{\V{n}}) + 2\left[ \E{n_i (\alpha{1i1}n_1 +
+            \dotsb + \alpha_{1iN}n_N + \beta_{1i})} \right.\\
+            &\left. \quad - \E{n_i} \E{ \alpha{1i1}n_1 +
+        \dotsb + \alpha_{1iN}n_N + \beta_{1i}} \right]\\
+        &= a_{2i}(\V{n}) + 2\left( \alpha_{1i1}\E{n_i n_1} + \dotsb +
+        \alpha_{1iN}\E{n_i n_N}\right.\\
+        &\quad \left. - \alpha_{1i1}\E{n_i}\E{n_1} - \dotsb -
+        \alpha_{1iN}\E{n_i}\E{n_N} \right)\\
+        &= a_{2i}(\V{n}) + 2 \sum_{j=1}^N \alpha_{1ij}(\E{n_i n_j} -
+        \E{ni}\E{n_j})\\
+        &= a_{2i}(\V{n}) + 2 \sum_{j=1}^N \alpha_{1ij}\sigma(n_i,n_j),
+    \end{aligned}
+\end{equation}
+where \(\sigma(n_i, n_j)\) is the covariance between \(n_i\) and \(n_j\).
+This shows that, in general, when the process is such that the first two jump
+moments are linear, the time evolution of the variance depends explicitly on the
+covariance matrix of the multivariate state \(\V{n}\). In practice, we might
+expect many of the coefficients \(\alpha_{1ij}, \alpha_{2ij}\) to be zero. For
+example, for a jump process in which a particle can jump between only adjacent
+urns, the matrix \(\alpha_1 = (\alpha_{1ij})\) would have a tridiagonal
+structure.
+
+\section{Master equation for solute transport}
 For the above problem of solute transport, the transition rates in
 table~\ref{tab:transport_events} can be combined into a single object using the
 notation introduced in the previous section:
