@@ -1,5 +1,6 @@
 main
 mean
+stats
 *.o
 *~
 *.swp
