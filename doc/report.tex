@@ -286,9 +286,10 @@ and we call \(a_{\nu i}(\V{n})\) the \emph{\(\nu\)-th jump moment of \(n_i\)}.
 \subsubsection{Linear jump moments}
 Now assume that we can write the \(\nu\)-th jump moment as a linear function of
 \(\V{n}\), i.e. that
-\begin{equation*}
+\begin{equation}
     a_{\nu i}(\V{n}) = \sum_{j=1}^{N} \alpha_{\nu i j} n_j + \beta_{\nu i},
-\end{equation*}
+    \label{eqn:linear_jump_moments_coeffs}
+\end{equation}
 for constants \(\alpha_{\nu i j}, \beta_{\nu i}\).
 Then, by linearity of the expectation, we have
 \begin{equation}
@@ -335,7 +336,7 @@ satisfying \eqref{eqn:linear_jump_moments}, we can write
 Substituting into \eqref{eqn:time_evo_variance_jump_moment} gives
 \begin{equation}
     \begin{aligned}
-        \diff{\sigma_i^2}{t} &= a_{2i}(\E{\V{n}}) + 2\left[ \E{n_i (\alpha{1i1}n_1 +
+        \diff{\sigma_i^2}{t} &= a_{2i}(\E{\V{n}}) + 2\left[ \E{n_i (\alpha_{1i1}n_1 +
             \dotsb + \alpha_{1iN}n_N + \beta_{1i})} \right.\\
             &\left. \quad - \E{n_i} \E{ \alpha{1i1}n_1 +
         \dotsb + \alpha_{1iN}n_N + \beta_{1i}} \right]\\
@@ -344,7 +345,7 @@ Substituting into \eqref{eqn:time_evo_variance_jump_moment} gives
         &\quad \left. - \alpha_{1i1}\E{n_i}\E{n_1} - \dotsb -
         \alpha_{1iN}\E{n_i}\E{n_N} \right)\\
         &= a_{2i}(\V{n}) + 2 \sum_{j=1}^N \alpha_{1ij}(\E{n_i n_j} -
-        \E{ni}\E{n_j})\\
+        \E{n_i}\E{n_j})\\
         &= a_{2i}(\V{n}) + 2 \sum_{j=1}^N \alpha_{1ij}\sigma(n_i,n_j),
     \end{aligned}
 \end{equation}
@@ -356,6 +357,21 @@ expect many of the coefficients \(\alpha_{1ij}, \alpha_{2ij}\) to be zero. For
 example, for a jump process in which a particle can jump between only adjacent
 urns, the matrix \(\alpha_1 = (\alpha_{1ij})\) would have a tridiagonal
 structure.
+
+\subsubsection{Covariance}
+Generalising the equation for the variance, we can derive an equation for the
+time evolution of the covariance between \(n_i\) and \(n_j\).
+
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_{ij}}{t}
+        &= \diff{\E{n_i n_j}}{t} - \E{n_i}\diff{\E{n_j}}{t}  -
+        \E{n_j}\diff{\E{n_i}}{t}\\
+        &= \adjustlimits\sum_{\V{n}} \sum_{\V{n}'}\left(n_i' n_j' - n_i
+        n_j\right)T(\V{n}' | \V{n})P(\V{n},t)\\
+        & \quad - \E{n_i}\E{a_{1j}(\V{n})} - \E{n_j}\E{a_{1i}(\V{n})}
+    \end{aligned}
+\end{equation}
 
 \section{Master equation for solute transport}
 For the above problem of solute transport, the transition rates in
@@ -824,14 +840,28 @@ scaled by a factor of \(\frac{s^N}{N!}\), which, for large \(N\) is very small.
 
 \section{First order kinetics}
 If we now assume that outflow and removal of particles obey first order
-kinetics, their respective transition rates become \(d n'_N\) and \(S_i n'_i\).
-The other rates in \eqref{eqn:transition_rates_zeroth_order} remain the same.
+kinetics, the transition rates become
+\begin{equation}
+    \label{eqn:transition_rates_first_order}
+    T(\V{n}|\V{n}') =
+        \begin{dcases*}
+            a n'_{i+1} & for \(\V{n} = \V{n}' + \V{e}_i - \V{e}_{i+1},
+            i=1,\dotsc,N-1\)\\
+            (a+b) n'_i & for \(\V{n} = \V{n}' - \V{e}_i + \V{e}_{i+1},
+            i=1,\dotsc,N-1\)\\
+            c & for \(\V{n} = \V{n}' + \V{e}_1\)\\
+            d n'_N & for \(\V{n} = \V{n}' - \V{e}_N\)\\
+            S_i n'_i & for \(\V{n} = \V{n}' - \V{e}_i, i=1,\dotsc,N\)\\
+            0 & otherwise
+        \end{dcases*}
+\end{equation}
+The inflow and hopping rates in remain the same as in
+\eqref{eqn:transition_rates_zeroth_order}.
 Therefore the only terms that change are those that correspond to removal and
 outflow.
 
 Working through the algebra analogous to the above, one obtains the following
-linear system determining for the mean field:
-
+linear system determining the mean field behaviour:
 \begin{subequations}
     \label{eqn:exp_equation_system_first}
     \begin{gather}
@@ -865,6 +895,117 @@ approximation with first order removal kinetics.
 \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\).}
 \end{figure}
 
+\subsection{Jump moments}
+In this section we give the first two jump moments \eqref{eqn:jump_moment} for
+the first-order transport problem.
+
+\subsubsection{First jump moment}
+Starting with \eqref{eqn:jump_moment} and substituting in
+\eqref{eqn:transition_rates_first_order} gives
+\begin{equation}
+    \begin{aligned}
+        a_{1i}(\V{n}) =& \sum_{\V{n}'} (n_i' - n_i) T(\V{n}' | \V{n})\\
+        &= (1-\delta_{iN})(n_i + 1 - n_i)a n_{i+1}
+        +  (1-\delta_{i1})(n_i - 1 - n_i)a n_i\\
+        &\quad+ (1-\delta_{iN})(n_i - 1 - n_i)(a+b) n_i
+        +  (1-\delta_{i1})(n_i + 1 - n_i)(a+b) n_{i-1}\\
+        &\quad+ \delta_{i1}(n_1 + 1 - n_1) c\\
+        &\quad+ \delta_{iN}(n_N - 1 - n_N) d n_N\\
+        &\quad+ (n_i - 1 - n_i) S_i n_i\\
+        &= (1-\delta_{i1})(a+b)n_{i-1} - \left[(2a+b) - \delta_{i1}a -
+        \delta_{iN}(a+b) + S_i\right]n_i\\
+        &\quad+ (1-\delta_{iN})an_{i+1} + \delta_{i1}c - \delta_{iN}d n_N.
+    \end{aligned}
+    \label{eqn:first_jump_mom_first_order}
+\end{equation}
+This is linear in \(\V{n}\) so we have that \eqref{eqn:linear_jump_moments}
+holds. Explicitly, we have that the time evolution of the expectation of \(n_i\)
+is given by
+\begin{equation}
+    \begin{aligned}
+        \diff{\E{n_i}}{t} &= (1-\delta_{i1})(a+b)\E{n_{i-1}} - \left[(2a+b) -
+        \delta_{i1}a - \delta_{iN}(a+b) + S_i\right]\E{n_i}\\
+        &\quad+(1-\delta_{iN})a\E{n_{i+1}} + \delta_{i1}c - \delta_{iN}d \E{n_N},
+    \end{aligned}
+\end{equation}
+which is equivalent to the system \eqref{eqn:exp_equation_system_first} given
+above, but significantly easier to derive.
+
+The coefficients \(\alpha_{1ij}\) (as in \eqref{eqn:linear_jump_moments_coeffs})
+are clearly the elements of the matrix \(A\), and the \(\beta_{1i}\) are the
+elements of the vector \(\V{b}\) in \eqref{eqn:exp_equation_system_first}.
+
+\subsubsection{Second jump moment}
+Similarly, we can find the second jump moments:
+\begin{equation}
+    \begin{aligned}
+        a_{2i}(\V{n}) =& \sum_{\V{n}'} (n_i' - n_i)^2 T(\V{n}' | \V{n})\\
+        &= (1-\delta_{iN})(n_i + 1 - n_i)^2a n_{i+1}
+        +  (1-\delta_{i1})(n_i - 1 - n_i)^2a n_i\\
+        &\quad+ (1-\delta_{iN})(n_i - 1 - n_i)^2(a+b) n_i
+        +  (1-\delta_{i1})(n_i + 1 - n_i)^2(a+b) n_{i-1}\\
+        &\quad+ \delta_{i1}(n_1 + 1 - n_1)^2 c\\
+        &\quad+ \delta_{iN}(n_N - 1 - n_N)^2 d n_N\\
+        &\quad+ (n_i - 1 - n_i)^2 S_i n_i\\
+        &= (1-\delta_{i1})(a+b)n_{i-1} + \left[(2a+b) - \delta_{i1}a -
+        \delta_{iN}(a+b) + S_i\right]n_i\\
+        &\quad+ (1-\delta_{iN})an_{i+1} + \delta_{i1}c + \delta_{iN}d n_N,
+    \end{aligned}
+    \label{eqn:second_jump_mom_first_order}
+\end{equation}
+which is also linear in \(\V{n}\).
+
+We have the following relations between the first and second jump moment
+coefficients
+\begin{align*}
+    \alpha_{1i(i-1)} &= \alpha_{2i(i-1)}\\
+    \alpha_{1ii} &= -\alpha_{2ii}\\
+    \alpha_{1i(i+1)} &= \alpha_{2i(i+1)}\\
+    \beta_{1i} &= \beta_{2i}
+\end{align*}
+
+\subsection{Variances}
+We are now in a position to write down the equation governing the time
+evolution of the variances for the first-order transport problem. Substituting
+\eqref{eqn:first_jump_mom_first_order} and
+\eqref{eqn:second_jump_mom_first_order} into
+\eqref{eqn:time_evo_variance_jump_moment} gives
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_i^2}{t} &= (1-\delta_{i1})(a+b)\E{n_{i-1}} +
+        \left[(2a+b) - \delta_{i1}a - \delta_{iN}(a+b) + S_i\right]\E{n_i}\\
+        &\quad+ (1-\delta_{iN})a\E{n_{i+1}} + \delta_{i1}c + \delta_{iN}d \E{n_N}\\
+        &\quad+ 2 \sum_{j=1}^N \alpha_{1ij} \sigma(n_i,n_j)
+    \end{aligned}
+    \label{eqn:time_evo_variance_first_order}
+\end{equation}
+
+TODO: work this out in full.
+
+\subsubsection{No correlation}
+The correlation between \(n_i, n_j, i\neq j\) is defined as \(\E{n_in_j} -
+\E{n_i}\E{n_j}\).
+If we make the assumption that there is no correlation between any \(n_i, n_j,
+i\neq j\), then the equation for the variance simplifies to
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_i^2}{t} &= (1-\delta_{i1})(a+b)\E{n_{i-1}} +
+        \left[(2a+b) - \delta_{i1}a - \delta_{iN}(a+b) + S_i\right]\E{n_i}\\
+        &\quad+ (1-\delta_{iN})a\E{n_{i+1}} + \delta_{i1}c + \delta_{iN}d \E{n_N}\\
+        &\quad+ 2 \alpha_{1ii} \sigma_i^2
+    \end{aligned}
+    \label{eqn:time_evo_variance_first_order_no_corr}
+\end{equation}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics{figures/variance_first_order_no_corr}
+    \caption{\label{fig:variance_first_order_no_corr} Comparison of a sample
+average of the variance (from 5000 runs) and the analytical prediction under the
+assumption zero correlation between urns, with parameters \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\).}
+\end{figure}
+
+\FloatBarrier
 \section{Todo/problems}
 \begin{itemize}
     \item Finish/write up about the variance for first order kinetics
