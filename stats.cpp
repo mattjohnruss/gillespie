@@ -148,10 +148,13 @@ int main(int argc, char **argv)
     // files have the same number of fields)
     unsigned n_fields = data[0][0].size();
 
-    // Storage for mean, mean_of_squares and variance
+    // Storage for mean, mean_of_squares, variance and covariance
+    // TODO kill variance when covariance is complete
     std::vector<std::vector<double> > mean(n_nodes, std::vector<double>(n_fields,0.));
     std::vector<std::vector<double> > mean_of_squares(n_nodes, std::vector<double>(n_fields,0.));
     std::vector<std::vector<double> > variance(n_nodes, std::vector<double>(n_fields,0.));
+    std::vector<std::vector<std::vector<double> > > covariance(
+            n_nodes, std::vector<std::vector<double> >(n_fields, std::vector<double>(n_fields,0.)));
 
     // Calculate 1/n_files
     double inv_n_files = 1./(double)n_files;
@@ -162,8 +165,9 @@ int main(int argc, char **argv)
     // File streams for mean and variance
     std::ofstream mean_file((file_prefix + "_mean.dat").c_str());
     std::ofstream variance_file((file_prefix + "_variance.dat").c_str());
+    std::ofstream covariance_file((file_prefix + "_covariance.dat").c_str());
 
-    // Loop over the nodes
+    // Loop over the nodes (timesteps)
     for(unsigned j = 0; j < n_nodes; j++)
     {
         // Output the node locations (once per node)
@@ -185,6 +189,32 @@ int main(int argc, char **argv)
             mean[j][field] *= inv_n_files;
             mean_of_squares[j][field] *= inv_n_files;
 
+            // Loop over the fields again for the covariance
+            for(unsigned field2 = 0; field2 < n_fields; field2++)
+            {
+                // Loop over the files again --- have (?) to do this separately
+                // from the above loop since we need the means in the variance
+                // calculation
+                for(unsigned f = 0; f < n_files; f++)
+                {
+                   covariance[j][field][field2] +=
+                       (data[f][j][field] - mean[j][field]) * (data[f][j][field2] - mean[j][field2]);
+                }
+
+                // At this point in the loops, covariance[j][field][field2] has
+                // all the data it needs and just needs bias correction and
+                // output
+
+                // Bias correction
+                covariance[j][field][field2] /= double(n_files-1.);
+
+                // Output the covariance
+                covariance_file << covariance[j][field][field2] << " ";
+            }
+
+            // New line bewteen rows of the cov matrix
+            covariance_file << std::endl;
+
             // Output the mean
             mean_file << " " << mean[j][field];
 
@@ -195,6 +225,9 @@ int main(int argc, char **argv)
 
         mean_file << std::endl;
         variance_file << std::endl;
+
+        // Double new line between cov matrices at different timesteps
+        covariance_file << std::endl << std::endl;
     }
 
     // Close the mean and variance files
