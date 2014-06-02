@@ -16,6 +16,9 @@
 \usepackage[crop=pdfcrop,process=auto]{pstool}
 \usepackage{multirow}
 \usepackage{enumerate}
+%\usepackage[notref]{showkeys}
+
+%\renewcommand*\showkeyslabelformat[1]{\normalfont\tiny#1}
 
 \numberwithin{equation}{section}
 
@@ -57,22 +60,24 @@ terms of chemical reactions).
     \caption{\label{fig:urns}Set up of the urns containing the particles}
 \end{figure}
 
-Suppose we have a physical system with \(N\) possible locations (``urns'') that
-each particle can reside in (we impose no upper limit on the number of particles
-in each urn), as in figure~\ref{fig:urns}. Denote the number of particles in urn
-\(i\) by \(n_i\). Also suppose that there are \(M\)
-different events that can occur in the system, such as a particle moving from
-one urn to the adjacent urn, or the spontaneous appearance of a particle in the
-first urn. These events must occur at specified rates, which represent the
-number of times per second one expects the corresponding event to occur.  Given
-the rates \(T_i, 1 \le i \le M\) at which the events in the system are expected
-to occur, the basic idea of the Gillespie algorithm is to randomly choose the
-time increment and then randomly choose the event that will occur at the new
-time. The random time increment is drawn from an exponential distribution with
-parameter \(T_0 = \sum_{i=1}^M T_i\), the sum of all of the rates. The rates of
-the events are not necessarily constants and therefore must be recalculated at
-each time step. For example, the rate at which a particle jumps from one urn to
-an adjacent urn might depend on the number of particles in the original urn.
+Suppose we have a physical system with \(N\) possible ``urns'' that each
+particle can reside in (we impose no upper limit on the number of particles in
+each urn), as in figure~\ref{fig:urns}. The urns could correspond to physical
+locations or chemical species, for example. Denote the number of particles in
+urn \(i\) by \(n_i\). Also suppose that there are \(M\) different events that
+can occur in the system, such as a particle moving from one urn to the adjacent
+urn (as in physically moving in space or a chemical reaction), or the
+spontaneous appearance of a particle in the first urn. These events must occur
+at specified rates, which represent the number of times per second one expects
+the corresponding event to occur.  Given the rates \(T_i, 1 \le i \le M\) at
+which the events in the system are expected to occur, the basic idea of the
+Gillespie algorithm is to randomly choose the time increment and then randomly
+choose the event that will occur at the new time. The random time increment is
+drawn from an exponential distribution with parameter \(T_0 = \sum_{i=1}^M
+T_i\), the sum of all of the rates. The rates of the events are not necessarily
+constants and therefore must be recalculated at each time step. For example, the
+rate at which a particle jumps from one urn to an adjacent urn might depend on
+the number of particles in the original urn.
 
 The Gillespie algorithm is as follows:
 \begin{enumerate}[\bfseries Step 1:]
@@ -90,7 +95,7 @@ The Gillespie algorithm is as follows:
     \item Return to Step 2, unless the stopping criteria have been met
 \end{enumerate}
 
-\section{Solute transport}
+\section{Zeroth order solute transport}
 Given a system as in figure~\ref{fig:urns} with \(N\) urns, we model the
 transport of a solute by advection, diffusion and spontaneous disappearance of a
 particle (corresponding to sinks) by the following set of events:
@@ -243,18 +248,64 @@ to state \(\V{n}\). Then the master equation is \citep{mckane2012stochastic}
         P(\V{n}',t) - T(\V{n}'|\V{n}) P(\V{n},t) \right].
 \end{equation}
 
-Here, \(P(\V{n},t)\) is defined as the conditional probability of finding the
-system in state \(V{n}\) at time \(t\) given the initial condition that at time
-\(t_0\), the system was in state \(\V{n}_0\). Or,
-\begin{equation*}
-    P(\V{n},t) = P(\V{n},t | \V{n}_0, t_0).
-\end{equation*}
+Here, \(P(\V{n},t) = P(\V{n},t | \V{n}_0, t_0)\) is defined as the conditional probability of finding the
+system in state \(\V{n}\) at time \(t\) given the initial condition that at time
+\(t_0\), the system was in state \(\V{n}_0\).
+
+We will later be interested in various moments of the probability distribution
+of the random vector \(\V{n}\) defined by \(P(\V{n},t)\).
+
+First, define the vectors \(\V{e}_i = (0,\dotsc,0,1,0,\dotsc,0)^T\) as the
+vector with a \(1\) in the \(i\)-th entry and a \(0\) in all others. Then the
+\emph{expectation} of \(\V{n}\) at time \(t\) is given by
+\begin{equation}
+    \E{\V{n}}(t) = \sum_{i=1}^N \E{n_i}(t) \V{e}_i
+    \label{eqn:expectation_n}
+\end{equation}
+where \(\E{n_i}(t)\) is the expected value of the number of particles in urn
+\(i\) at time \(t\) and is given by
+\begin{equation}
+    \begin{aligned}
+        \E{n_i}(t) =& \sum_{j=0}^\infty j P(n_i = j,t)\\
+        =& \sum_{j=0} j
+        \sum_{\substack{\V{n} \text{ s.t.} \\ n_i=j}} P(\V{n},t)\\
+        =& \sum_{j=0} j
+        \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso \sum_{n_N} P(\V{n},t)\\
+        =& \sum_{\V{n}} n_i P(\V{n},t),
+    \end{aligned}
+    \label{eqn:expecation_n_i}
+\end{equation}
+where \(P(n_i = j,t)\) denotes the marginal distribution of \(n_i\).  More
+generally, the expectation of any scalar function of the random variables, say
+\(f(\V{n})\) is defined by
+\begin{equation}
+    \E{f(\V{n})}(t) = \sum_{\V{n}} f(\V{n}) P(\V{n},t).
+    \label{eqn:expectation_f(n)}
+\end{equation}
+
+The variance of \(n_i\) is given by
+\begin{equation}
+    \begin{aligned}
+        \sigma_i(t) &= \E{(n_i - \E{n_i})^2}\\
+        &= \E{n_i^2} - \E{n_i}^2,
+    \end{aligned}
+    \label{eqn:variance_n_i}
+\end{equation}
+and the covariance between \(n_i\) and \(n_j\) by
+\begin{equation}
+    \begin{aligned}
+        \sigma_{ij}(t) &= \E{(n_i - \E{n_i})(n_j - \E{n_j})}\\
+        &= \E{n_i n_j} - \E{n_i} \E{n_j}.
+    \end{aligned}
+    \label{eqn:covariance_n_i_n_j}
+\end{equation}
 
 \subsection{Jump moments}
-In order to simplify the derivation from the master equation of moments of the
-probability distribution, we can introduce the discrete multivariate jump
-moments. To motivate their definition we take the time derivative of the
-expectation of the \(i\)-th random variable as follows.
+In order to simplify the derivation of moments of the probability distribution
+from the master equation, we can introduce the discrete multivariate jump
+moments. To motivate their definition, we take the time derivative of the
+expectation of the \(i\)-th random variable as follows. (Justification for
+taking derivative inside infinite sum?)
 \begin{align*}
     \diff{\E{n_i}}{t} &= \diff{}{t}\sum_{\V{n}}n_i P(\V{n},t)\\
     &= \sum_{\V{n}}n_i \diff{P(\V{n},t)}{t}\\
@@ -271,7 +322,7 @@ where we have substituted in the master equation \eqref{eqn:master_eqn_rates}.
 This suggests that we define
 \begin{equation}
     \begin{gathered}
-        a_{\nu i}(\V{n}) = \sum_{\V{n}} (n_i'-n_i)^\nu T(\V{n}'|\V{n})\\
+        a_{\nu i}(\V{n}') = \sum_{\V{n}} (n_i'-n_i)^\nu T(\V{n}'|\V{n})\\
         (\nu = 0,1,2,\dotsc,\quad i=1,2,\dotsc)
     \end{gathered}
     \label{eqn:jump_moment}
@@ -284,16 +335,16 @@ since then we have
 and we call \(a_{\nu i}(\V{n})\) the \emph{\(\nu\)-th jump moment of \(n_i\)}.
 
 \subsubsection{Linear jump moments}
-Now assume that we can write the \(\nu\)-th jump moment as a linear function of
+If we assume that we can write the \(\nu\)-th jump moment as a linear function of
 \(\V{n}\), i.e. that
 \begin{equation}
     a_{\nu i}(\V{n}) = \sum_{j=1}^{N} \alpha_{\nu i j} n_j + \beta_{\nu i},
     \label{eqn:linear_jump_moments_coeffs}
 \end{equation}
-for constants \(\alpha_{\nu i j}, \beta_{\nu i}\).
-Then, by linearity of the expectation, we have
+for constants \(\alpha_{\nu i j}, \beta_{\nu i}\),
+then, by linearity of the expectation, we have
 \begin{equation}
-    \E{a_{\nu i}(\V{n})} = a_{\nu i}(\E{\V{n}})
+    \E{a_{\nu i}(\V{n})} = a_{\nu i}(\E{\V{n}}).
     \label{eqn:linear_jump_moments}
 \end{equation}
 
@@ -338,7 +389,7 @@ Substituting into \eqref{eqn:time_evo_variance_jump_moment} gives
     \begin{aligned}
         \diff{\sigma_i^2}{t} &= a_{2i}(\E{\V{n}}) + 2\left[ \E{n_i (\alpha_{1i1}n_1 +
             \dotsb + \alpha_{1iN}n_N + \beta_{1i})} \right.\\
-            &\left. \quad - \E{n_i} \E{ \alpha{1i1}n_1 +
+            &\left. \quad - \E{n_i} \E{ \alpha_{1i1}n_1 +
         \dotsb + \alpha_{1iN}n_N + \beta_{1i}} \right]\\
         &= a_{2i}(\V{n}) + 2\left( \alpha_{1i1}\E{n_i n_1} + \dotsb +
         \alpha_{1iN}\E{n_i n_N}\right.\\
@@ -361,19 +412,56 @@ structure.
 \subsubsection{Covariance}
 Generalising the equation for the variance, we can derive an equation for the
 time evolution of the covariance between \(n_i\) and \(n_j\).
-
 \begin{equation}
     \begin{aligned}
         \diff{\sigma_{ij}}{t}
-        &= \diff{\E{n_i n_j}}{t} - \E{n_i}\diff{\E{n_j}}{t}  -
+        &= \diff{\E{n_i n_j}}{t} - \E{n_i}\diff{\E{n_j}}{t} -
         \E{n_j}\diff{\E{n_i}}{t}\\
         &= \adjustlimits\sum_{\V{n}} \sum_{\V{n}'}\left(n_i' n_j' - n_i
         n_j\right)T(\V{n}' | \V{n})P(\V{n},t)\\
-        & \quad - \E{n_i}\E{a_{1j}(\V{n})} - \E{n_j}\E{a_{1i}(\V{n})}
+        & \quad - \E{n_i}\E{a_{1j}(\V{n})} - \E{n_j}\E{a_{1i}(\V{n})}.
     \end{aligned}
+    \label{eqn:time_evo_covar_sum}
+\end{equation}
+Notice that
+\begin{align*}
+    n_i' n_j' - n_i n_j = (n_i' - n_i)(n_j' - n_j) + n_i(n_j' - n_j) + n_j(n_i'
+    - n_i).
+\end{align*}
+This then allows us to write \eqref{eqn:time_evo_covar_sum} as
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_{ij}}{t} = \E{a_{1 i j}(\V{n})} +
+        \E{(n_i - \E{n_i})a_{1j}(\V{n})} + \E{(n_j - \E{n_j})a_{1i}(\V{n})},
+    \end{aligned}
+    \label{eqn:time_evo_covar_jump_moments}
+\end{equation}
+where we have used the mixed jump moment between \(n_i\) and \(n_j\) given by
+\begin{equation}
+    a_{\nu i j}(\V{n}) = \sum_{\V{n}'} (n_i' - n_i)^\nu (n_j' - n_j)^\nu
+    T(\V{n}' | \V{n}).
+    \label{eqn:mixed_jump_moment_i_j}
 \end{equation}
 
-\section{Master equation for solute transport}
+When \(a_{1ij}(\V{n})\) is linear, we have \(\E{a_{1ij}(\V{n})} =
+a_{1ij}(\E{\V{n}})\), and when \(a_{1j}(\V{n})\) is linear we have
+\begin{equation*}
+    \E{(n_i - \E{n_i})a_{1j}(\V{n})} = \sum_{k=1}^N \alpha_{1jk} \sigma_{ki},
+\end{equation*}
+and similarly for the third term by swapping \(i \leftrightarrow j\). Notice
+that this sum is a matrix multiplication, and if we define
+\begin{equation}
+    m_{ij} = \sum_{k=1}^N \alpha_{1ik}\sigma_{kj},
+\end{equation}
+we can write the equations for the covariances in the form
+\begin{equation}
+    \begin{aligned}
+        \diff{\sigma_{ij}}{t} = a_{1 i j}(\E{\V{n}}) + m_{ij} + m_{ji}.
+    \end{aligned}
+    \label{eqn:time_evo_covar_linear_jump_moments}
+\end{equation}
+
+\section{Master equation for zeroth order solute transport}
 For the above problem of solute transport, the transition rates in
 table~\ref{tab:transport_events} can be combined into a single object using the
 notation introduced in the previous section:
@@ -447,7 +535,7 @@ obtain the master equation for this system:
     \end{split}
 \end{equation}
 
-\section{Deterministic mean-field equations}
+\subsection{Deterministic mean-field equations}
 The objective of this section is to obtain an equation governing the time
 evolution of the expected value of the number of particles in each urn.
 
@@ -710,7 +798,7 @@ terms above. The general expression for all \(i\):
         %\end{align*}
 \end{itemize}
 
-\subsection{System of equations}
+\subsubsection{System of equations}
 Let \(Y_i(t) = \E{n_i}(t), \V{Y}(t) = (Y_1(t),\dotsc,Y_N(t))^T\). Then,
 collecting all the terms above and organising the system of equations in matrix
 form, we obtain (neglecting the terms relating to the probability of the
@@ -751,7 +839,7 @@ number of particles in one urn to be 0).
 \end{figure}
 
 \FloatBarrier
-\section{Analysis of the mean-field equations}
+\subsection{Analysis of the mean-field equations}
 In order to analyse the mean-field equations, we consider a 1-urn pure-death
 process with death rate \(s H(n)\), where \(n\) is the number of particles in
 the urn. This simple process contains many of the difficult features of the full
@@ -932,7 +1020,7 @@ which is equivalent to the system \eqref{eqn:exp_equation_system_first} given
 above, but significantly easier to derive.
 
 The coefficients \(\alpha_{1ij}\) (as in \eqref{eqn:linear_jump_moments_coeffs})
-are clearly the elements of the matrix \(A\), and the \(\beta_{1i}\) are the
+are clearly the \(i,j\) elements of the matrix \(A\), and the \(\beta_{1i}\) are the
 elements of the vector \(\V{b}\) in \eqref{eqn:exp_equation_system_first}.
 
 \subsubsection{Second jump moment}
@@ -964,6 +1052,74 @@ coefficients
     \beta_{1i} &= \beta_{2i}
 \end{align*}
 
+\subsubsection{Mixed jump moments}
+Calculating the first mixed jump moment \eqref{eqn:mixed_jump_moment_i_j}
+requires slightly more effort than the regular jump moments since every
+combination of relations between \(n_i\) and \(n_j\) permitted by the definition
+of the rates \eqref{eqn:transition_rates_first_order} must be considered. In the
+transport system, particles can only jump from urn \(i\) to urn \(j\) if \(j = i
+\pm 1\), which reduces the number of terms we need to consider. However, there
+are still many terms; we proceed by considering terms corresponding to each
+transition type separately.
+\begin{equation}
+    a_{1ij}(\V{n}) = \{\text{hop left}\} + \{\text{hop right}\} +
+    \{\text{inflow}\} + \{\text{outflow}\} + \{\text{removal}\}
+\end{equation}
+
+\begin{align}
+    &\begin{aligned}
+        \{\text{hop left}\}
+        &= \delta_{(i+1)j}(1 - \delta_{iN})(n_i + 1 - n_i)(n_{i+1} - 1 -
+        n_{i+1})a n_{i+1}\\
+        &+ \delta_{i(j+1)}(1 - \delta_{i1})(n_i - 1 - n_i)(n_{i-1} + 1 -
+        n_{i-1})a n_i\\
+        &+ \delta_{ij}(1 - \delta_{iN})(n_i + 1 - n_i)(n_i + 1 - n_i)a n_{i+1}\\
+        &+ \delta_{ij}(1 - \delta_{i1})(n_i - 1 - n_i)(n_i - 1 - n_i)a n_i
+        \label{eqn:mixed_jump_hop_left}
+    \end{aligned}\\
+    &\begin{aligned}
+        \{\text{hop right}\}
+        &= \delta_{(i+1)j}(1 - \delta_{iN})(n_i - 1 - n_i)(n_{i+1} + 1 -
+        n_{i+1})(a+b) n_i\\
+        &+ \delta_{i(j+1)}(1 - \delta_{i1})(n_i + 1 - n_i)(n_{i-1} - 1 -
+        n_{i-1})(a+b) n_{i-1}\\
+        &+ \delta_{ij}(1 - \delta_{iN})(n_i - 1 - n_i)(n_i - 1 - n_i)(a+b) n_i\\
+        &+ \delta_{ij}(1 - \delta_{i1})(n_i + 1 - n_i)(n_i + 1 - n_i)(a+b)
+        n_{i-1}
+        \label{eqn:mixed_jump_hop_right}
+    \end{aligned}\\
+    &\begin{aligned}
+        \{\text{inflow}\} = \delta_{i1}\delta_{j1} (n_1 + 1 - n_1)(n_1 + 1 -
+        n_1)c
+        \label{eqn:mixed_jump_inflow}
+    \end{aligned}\\
+    &\begin{aligned}
+        &\{\text{outflow}\} = \delta_{iN}\delta_{jN} (n_N - 1 - n_N)(n_N - 1 - n_N)d
+        n_N\\
+        \label{eqn:mixed_jump_outflow}
+    \end{aligned}\\
+    &\begin{aligned}
+        &\{\text{removal}\} = \delta_{ij}(n_i - 1 - n_i)(n_i - 1 - n_i)S_i n_i
+        \label{eqn:mixed_jump_removal}
+    \end{aligned}
+\end{align}
+Summing \eqref{eqn:mixed_jump_hop_left}--\eqref{eqn:mixed_jump_removal} and
+simplifying gives
+\begin{equation}
+    \begin{aligned}
+        a_{1ij}(\V{n}) &= (a+b)(1-\delta_{i1})(\delta_{ij} -
+        \delta_{i(j+1)})n_{i-1}\\
+        &+ \left[ a(1-\delta_{i1})(\delta_{ij} -
+        \delta_{i(j+1)}) + (a+b)(1-\delta_{iN})(\delta_{ij}-\delta_{(i+1)j}) +
+    \delta_{ij}S_i \right]n_i\\
+    &+ a(1-\delta_{iN})(\delta_{ij} - \delta_{(i+1)j})n_{i+1} +
+    \delta_{i1}\delta_{j1}c + \delta_{jN}\delta_{iN}d n_N
+    \end{aligned}
+\end{equation}
+It is clear from this expression that \(a_{1ij}(\V{n})\) is linear in \(\V{n}\)
+and, since \(a_{1i}(\V{n})\) is also linear, we can use the simplified form of
+the equation for the covariance \eqref{eqn:time_evo_covar_linear_jump_moments}.
+
 \subsection{Variances}
 We are now in a position to write down the equation governing the time
 evolution of the variances for the first-order transport problem. Substituting
@@ -983,9 +1139,7 @@ evolution of the variances for the first-order transport problem. Substituting
 TODO: work this out in full.
 
 \subsubsection{No correlation}
-The correlation between \(n_i, n_j, i\neq j\) is defined as \(\E{n_in_j} -
-\E{n_i}\E{n_j}\).
-If we make the assumption that there is no correlation between any \(n_i, n_j,
+If we make the assumption that there is no covariance between any \(n_i, n_j,
 i\neq j\), then the equation for the variance simplifies to
 \begin{equation}
     \begin{aligned}
@@ -1005,25 +1159,45 @@ average of the variance (from 5000 runs) and the analytical prediction under the
 assumption zero correlation between urns, with parameters \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\).}
 \end{figure}
 
+\subsection{Covariances}
+We can now solve \eqref{eqn:time_evo_covar_linear_jump_moments} subject to the
+initial conditions
+\begin{equation*}
+    \sigma_{ij}(t=0) = 0, \text{ for } i,j=1,\dotsc,N.
+\end{equation*}
+An example solution, given as a matrix plot, is shown in
+figure~\ref{fig:ex_covariance_first_order_exact}. For comparison, the
+corresponding plot generated from the sample covariances of 9999 Gillespie runs
+for the same parameters is shown in
+figure~\ref{fig:ex_covariance_first_order_gillespie}.
+
+\begin{figure}
+    \centering
+    \includegraphics{figures/covariance_exact_40}
+    \caption{\label{fig:ex_covariance_first_order_exact}Exact covariance matrix for
+parameters \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\)}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics{figures/covariance_gillespie_40}
+    \caption{\label{fig:ex_covariance_first_order_gillespie}Sample covariance
+matrix (from 9999 runs) for parameters \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\)}
+\end{figure}
+
+The exact covariance equation \eqref{eqn:time_evo_covar_linear_jump_moments} is
+solved numerically using \texttt{Mathematica}. The numerical solution has very
+small (\(\sim 10^{-9}\) --- many orders of magnitude smaller than the Gillespie)
+off-diagonal elements which are most likely numerical artefacts.
+
 \FloatBarrier
 \section{Todo/problems}
 \begin{itemize}
-    \item Finish/write up about the variance for first order kinetics
-    \item (Get to the bottom of the non-closed system for the mean-field)
-        \begin{itemize}
-            \item The problem is caused by the ``nonlinear'' transition rates
-                (i.e. not a linear function (in the polynomial sense) of \(n\)) which gives us an
-                absorbing boundary at \(n=0\)
-            \item Looked at generating functions, ``limbo states'' etc. and
-                these don't seem to solve the problem in this case
-            \item Might be more feasible to use a continuous description
-                (something like Fokker-Planck)
-        \end{itemize}
-    \item Read about Fokker-Planck equations and related
-    \item Try to derive continuous version of the multiple urns problem
+    \item Show analytically that \(\sigma_{ij} = 0\) when \(i \neq j\)
+    \item Write up exact solution of 1 urn 1st order death process
+    \item Unbiased transport --- keep biased everywhere except for when solving
+        the linear system?
+    \item Update plots --- consistent colours, line labels
 \end{itemize}
-
-
 
 \bibliography{references}
 
