@@ -1,14 +1,41 @@
 \chapter{Individual based approach}
-\todo{introduction to individual based approach}
-\todo{move problem description (urns) here}
+An individual based approach models a problem by analysing the interactions
+between discrete entities. Applying this approach to the problem of solute
+transport, the entities represent the particles of the solute. The physical
+interaction of the particles with each other gives rise to macroscopic phenomena
+such as diffusion. The particle-scale interactions are modelled by a set of
+\emph{events}, which are problem specific. Once the microscopic properties of a
+an individual based model have been specified, it is possible to create
+realisations of the system using a stochastic simulation algorithm --- for
+example, the Gillespie algorithm (described below). The model
+is random in nature, with the events being randomly selected from an appropriate
+probability distribution. As such, in order to find the statistical properties
+of the system, an ensemble of realisations can be created from which properties
+can be estimated. In addition to this, we can make theoretical predictions (in
+some cases, exact expressions, and in others, approximations) of the statistical
+properties of an individual based system. These are typically derived from a
+Master equation, which describes the time evolution of the probability
+distribution defining the system.
 
-\section{Gillespie algorithm}
-The Gillespie algorithm is a stochastic simulation algorithm, named after
-Gillespie due to the papers \cite{gillespie1976general,gillespie1977exact}. It
-was described by Gillespie in terms of its application to simulating chemical
-reactions, but it is applicable to any continuous time Markov process.
-\cite{anderson2007modified} gives a clear description of the algorithm (again in
-terms of chemical reactions).
+The two main types of randomness in individual based models are
+\begin{itemize}
+    \item Intrinsic noise --- randomness arising from the stochastic nature of the
+        physical problem;
+    \item Quenched disorder --- randomness of a parameter of the system which is
+        usually chosen and fixed before allowing the system to evolve.
+\end{itemize}
+In solute transport in a disordered medium, a source of quenched disorder is the
+randomness of the sink locations.
+\todo{elaborate?}
+
+We are interested in macroscopic features of the system, including their
+statistics, which arise from the both types of disorder and their interactions.
+
+\section{Problem formulation}
+In one dimension, we formulate the problem by discretising space into a
+finite set of locations at equal intervals. To each spatial location (``urn'') we assign
+a non-zero number of particles and particles can move from one urn to
+another according to the set of events.
 
 \begin{figure}[ht!]
     \centering
@@ -23,85 +50,23 @@ terms of chemical reactions).
     \caption{\label{fig:urns}Set up of the urns containing the particles}
 \end{figure}
 
-Suppose we have a physical system with \(N\) possible ``urns'' that each
-particle can reside in (we impose no upper limit on the number of particles in
-each urn), as in figure~\ref{fig:urns}. The urns could correspond to physical
-locations or chemical species, for example. Denote the number of particles in
-urn \(i\) by \(n_i\). Also suppose that there are \(M\) different events that
-can occur in the system, such as a particle moving from one urn to the adjacent
-urn (as in physically moving in space or a chemical reaction), or the
-spontaneous appearance of a particle in the first urn. These events must occur
-at specified rates, which represent the number of times per second one expects
-the corresponding event to occur.  Given the rates \(T_i, 1 \le i \le M\) at
-which the events in the system are expected to occur, the basic idea of the
-Gillespie algorithm is to randomly choose the time increment and then randomly
-choose the event that will occur at the new time. The random time increment is
-drawn from an exponential distribution with parameter \(T_0 = \sum_{i=1}^M
-T_i\), the sum of all of the rates. The rates of the events are not necessarily
-constants and therefore must be recalculated at each time step. For example, the
-rate at which a particle jumps from one urn to an adjacent urn might depend on
-the number of particles in the original urn.
-
-The Gillespie algorithm is as follows:
-\begin{enumerate}[\bfseries Step 1:]
-    \item Set the initial number of particles in each urn and set time \(t=0\)
-    \item Calculate the rate \(T_i\) for each of the \(M\) events
-    \item Set \(T_0 = \sum_{i=1}^M T_i\)
-    \item Generate a uniformly random real number \(r\), such that \(0 \le r \le 1\)
-    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. \(\delta t\)
-        is drawn from an exponential distribution)
-    \item Choose a event randomly from the discrete distribution such that
-        probability of drawing event \(k\) is \(T_k/T_0\), for \(1 \le k \le
-        M\)
-    \item Increment time according to the time step, \(t \leftarrow t + \delta
-        t\), and perform the changes corresponding to the event chosen
-    \item Return to Step 2, unless the stopping criteria have been met
-\end{enumerate}
-
-\section{Zeroth order solute transport}
-Given a system as in figure~\ref{fig:urns} with \(N\) urns, we model the
-transport of a solute by advection, diffusion and spontaneous disappearance of a
-particle (corresponding to sinks) by the following set of events:
-
+The different types of events in our problem are as follows:
 \begin{table}[ht!]
     \centering
-    \begin{tabular}{ c | c | c | c }
-        Description & Rate & Effect & Count \\ \hline\hline
-        \multirow{2}{*}{Hop left} & \multirow{2}{*}{\(T^-_i = a n_{i+1}\)} &
-        \(n_{i+1} \leftarrow n_{i+1} - 1\) & \multirow{2}{*}{\(N-1\)} \\
-        & & \(n_i \leftarrow n_i + 1\) \\ \hline
-        \multirow{2}{*}{Hop right} & \multirow{2}{*}{\(T^+_i = (a+b) n_i\)} &
-        \(n_i \leftarrow n_i - 1\) & \multirow{2}{*}{\(N-1\)} \\
-        & & \(n_{i+1} \leftarrow n_{i+1} + 1\) \\ \hline
-        Inflow & \(T\Sst{in} = c\) & \(n_1 \leftarrow n_1 + 1\) & \(1\) \\ \hline
-        Outflow & \(T\Sst{out} = d H(n_N)\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
-        Removal & \(T\Sst{rem}_i = s_i H(n_i)\) & \(n_i \leftarrow n_i - 1\) & \(N\) \\
+    \begin{tabular}{ c | c | c }
+        Description & Effect & Count \\ \hline\hline
+        \multirow{2}{*}{Hop left} & \(n_{i+1} \leftarrow n_{i+1} - 1\) & \multirow{2}{*}{\(N-1\)} \\ & \(n_i \leftarrow n_i + 1\) \\ \hline
+        \multirow{2}{*}{Hop right} & \(n_i \leftarrow n_i - 1\) & \multirow{2}{*}{\(N-1\)} \\ & \(n_{i+1} \leftarrow n_{i+1} + 1\) \\ \hline
+        Inflow & \(n_1 \leftarrow n_1 + 1\) & \(1\) \\ \hline
+        Outflow & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
+        Removal & \(n_i \leftarrow n_i - 1\) & \(N\) \\
     \end{tabular}
-    \caption{\label{tab:transport_events}Definitions of the different types of
+    \caption{\label{tab:generic_transport_events}Definitions of the different types of
 events in the solute transport system}
 \end{table}
+
 Figure~\ref{fig:transport_events} gives a diagrammatic representation of the
-different event types.
-
-The constants \(a,b,c,d\) and the \(s_i\) are parameters which must be
-specified, corresponding to the rates (?) of diffusion, advection, inflow,
-outflow and removal (from urn \(i\)), respectively. (Maybe it only makes sense to have
-\(d=a+b\)?). The rates for outflow and removal are (currently) modelling
-zeroth-order kinetics and to avoid the possibility of removal when an urn is
-empty, the rates involve the discrete Heaviside function, defined
-here as
-\begin{equation*}
-    H(n) =
-    \begin{dcases*}
-        1 & if \(n \ge 1\)\\
-        0 & if \(n < 1\)
-    \end{dcases*}
-\end{equation*}
-
-There are \(M=2(N-1) + 2 + N = 3N\) events in total.
-%Note that since
-%the removal rate is a constant this corresponds to zero-order kinetics, where
-%the removal rate does not depend on the number of particles in the urn.
+different event types in terms of the urns.
 
 \begin{figure}[ht!]
     \centering
@@ -154,6 +119,94 @@ There are \(M=2(N-1) + 2 + N = 3N\) events in total.
     \caption{\label{fig:transport_events}Diagrammatic representation of the
 different event types in the solute transport system}
 \end{figure}
+
+\section{Gillespie algorithm}
+The Gillespie algorithm is a stochastic simulation algorithm, named after
+Gillespie due to the papers \cite{gillespie1976general,gillespie1977exact}. It
+was described by Gillespie in terms of its application to simulating chemical
+reactions, but it is applicable to any continuous time Markov process.
+\cite{anderson2007modified} gives a clear description of the algorithm (again in
+terms of chemical reactions).
+
+Suppose we have a physical system with \(N\) possible ``urns'' that each
+particle can reside in (we impose no upper limit on the number of particles in
+each urn), as in figure~\ref{fig:urns}. The urns could correspond to physical
+locations or chemical species, for example. Denote the number of particles in
+urn \(i\) by \(n_i\). Also suppose that there are \(M\) different events that
+can occur in the system, such as a particle moving from one urn to the adjacent
+urn (as in physically moving in space or a chemical reaction), or the
+spontaneous appearance of a particle in the first urn. These events must occur
+at specified rates, which represent the number of times per second one expects
+the corresponding event to occur.  Given the rates \(T_i, 1 \le i \le M\) at
+which the events in the system are expected to occur, the basic idea of the
+Gillespie algorithm is to randomly choose the time increment and then randomly
+choose the event that will occur at the new time. The random time increment is
+drawn from an exponential distribution with parameter \(T_0 = \sum_{i=1}^M
+T_i\), the sum of all of the rates. The rates of the events are not necessarily
+constants and therefore must be recalculated at each time step. For example, the
+rate at which a particle jumps from one urn to an adjacent urn might depend on
+the number of particles in the original urn.
+
+The Gillespie algorithm is as follows:
+\begin{enumerate}[\bfseries Step 1:]
+    \item Set the initial number of particles in each urn and set time \(t=0\)
+    \item Calculate the rate \(T_i\) for each of the \(M\) events
+    \item Set \(T_0 = \sum_{i=1}^M T_i\)
+    \item Generate a uniformly random real number \(r\), such that \(0 \le r \le 1\)
+    \item Set \(\delta t = \ln\left(\frac{1}{r}\right)/T_0\) (i.e. \(\delta t\)
+        is drawn from an exponential distribution)
+    \item Choose a event randomly from the discrete distribution such that
+        probability of drawing event \(k\) is \(T_k/T_0\), for \(1 \le k \le
+        M\)
+    \item Increment time according to the time step, \(t \leftarrow t + \delta
+        t\), and perform the changes corresponding to the event chosen
+    \item Return to Step 2, unless the stopping criteria have been met
+\end{enumerate}
+
+\section{Zeroth order solute transport}
+Zeroth order transport implies that the rates of removal and outflow of
+particles do not depend on the number of particles. In other words, the rates
+are constants. This can causes the unphysical problem of negative particle numbers if the
+rates are high enough. Clearly, when an urn is empty, no particles can be
+removed from it. Therefore, we multiply the removal rates by the discrete
+Heaviside function,
+\begin{equation*}
+    H(n) =
+    \begin{dcases*}
+        1 & if \(n \ge 1\)\\
+        0 & if \(n < 1\)
+    \end{dcases*}
+\end{equation*}
+ to ensure that the rates go to zero once the particle number reaches zero.
+
+We can now augment the table~\ref{tab:generic_transport_events} to give the
+rates assuming zeroth order removal kinetics:
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{ c | c | c | c }
+        Description & Rate & Effect & Count \\ \hline\hline
+        \multirow{2}{*}{Hop left} & \multirow{2}{*}{\(T^-_i = a n_{i+1}\)} &
+        \(n_{i+1} \leftarrow n_{i+1} - 1\) & \multirow{2}{*}{\(N-1\)} \\
+        & & \(n_i \leftarrow n_i + 1\) \\ \hline
+        \multirow{2}{*}{Hop right} & \multirow{2}{*}{\(T^+_i = (a+b) n_i\)} &
+        \(n_i \leftarrow n_i - 1\) & \multirow{2}{*}{\(N-1\)} \\
+        & & \(n_{i+1} \leftarrow n_{i+1} + 1\) \\ \hline
+        Inflow & \(T\Sst{in} = c\) & \(n_1 \leftarrow n_1 + 1\) & \(1\) \\ \hline
+        Outflow & \(T\Sst{out} = d H(n_N)\) & \(n_N \leftarrow n_N - 1\) & \(1\) \\ \hline
+        Removal & \(T\Sst{rem}_i = S_i H(n_i)\) & \(n_i \leftarrow n_i - 1\) & \(N\) \\
+    \end{tabular}
+    \caption{\label{tab:zeroth_order_transport_events}Rates of the different types of
+events in the solute transport system with zeroth order kinetics}
+\end{table}
+The constants \(a,b,c,d\) and the \(S_i\) are parameters which must be
+specified, corresponding to the rates of diffusion, advection, inflow, outflow
+and removal (from urn \(i\)), respectively. (Maybe it only makes sense to have
+\(d=a+b\)?).
+
+There are \(M=2(N-1) + 2 + N = 3N\) events in total.
+%Note that since
+%the removal rate is a constant this corresponds to zero-order kinetics, where
+%the removal rate does not depend on the number of particles in the urn.
 
 \FloatBarrier
 
@@ -424,9 +477,9 @@ we can write the equations for the covariances in the form
     \label{eqn:time_evo_covar_linear_jump_moments}
 \end{equation}
 
-\section{Master equation for zeroth order solute transport}
+\section{Zeroth order kinetics}
 For the above problem of solute transport, the transition rates in
-table~\ref{tab:transport_events} can be combined into a single object using the
+table~\ref{tab:zeroth_order_transport_events} can be combined into a single object using the
 notation introduced in the previous section:
 \begin{equation}
     \label{eqn:transition_rates_zeroth_order}
@@ -498,280 +551,283 @@ obtain the master equation for this system:
     \end{split}
 \end{equation}
 
-\subsection{Deterministic mean-field equations}
-\todo{this whole section can go}
-The objective of this section is to obtain an equation governing the time
-evolution of the expected value of the number of particles in each urn.
+\subsection{Jump moments}
 
-The expected value of the entire state \(\V{n}\) at time \(t\) is
-\begin{equation*}
-    \E{\V{n}}(t) = \sum_{i=1}^N \langle n_i \rangle(t) \V{e}_i,
-\end{equation*}
-where \(\E{n_i}(t)\) is the expected value of the number of particles in urn
-\(i\) at time \(t\) and is given by
-\begin{align*}
-    \E{n_i}(t) =& \sum_{j=0}^\infty j P(n_i = j,t)\\
-    =& \sum_{j=0} j
-    \sum_{\substack{\V{n} \text{ s.t.} \\ n_i=j}} P(\V{n},t)\\
-    =& \sum_{j=0} j
-    \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso \sum_{n_N} P(\V{n},t)\\
-    =& \sum_{\V{n}} n_i P(\V{n},t),
-\end{align*}
-where \(P(n_i = j,t)\) denotes the marginal distribution of \(n_i\).
+\subsection{Mean}
 
-Differentiating \(\E{n_i}\) with respect to time,
-\begin{align*}
-    \diff{(\E{n_i}(t))}{t} =& \sum_{\V{n}} n_i \diff{(P(\V{n},t))}{t}.
-\end{align*}
+\subsection{Covariances}
 
-Substituting the expression \eqref{eqn:trans_me} into the above,
-\begin{subequations}
-\begin{align}
-    \label{eqn:trans_expectation_hl_term}
-    \diff{(\E{n_i}(t))}{t}
-    = & \sum_\V{n} n_i \sum_{j=1}^{N-1}
-    \left[a(n_{j+1}+1) P(\V{n} - \V{e}_j + \V{e}_{j+1},t) -
-        an_{j+1} P(\V{n},t)\right] \\
-    \label{eqn:trans_expectation_hr_term}
-    + & \sum_\V{n} n_i \sum_{j=1}^{N-1}
-    \left[(a+b)(n_j+1) P(\V{n} + \V{e}_j - \V{e}_{j+1},t) -
-        (a+b)n_j P(\V{n},t)\right] \\
-    \label{eqn:trans_expectation_in_term}
-    + & \sum_\V{n} n_i
-    \left[c P(\V{n} - \V{e}_1,t) - c P(\V{n},t)\right] \\
-    \label{eqn:trans_expectation_out_term}
-    + & \sum_\V{n} n_i
-    \left[d H(n_N+1) P(\V{n} + \V{e}_N,t) - d H(n_N) P(\V{n},t)\right] \\
-    \label{eqn:trans_expectation_rem_term}
-    + & \sum_\V{n} n_i \sum_{j=1}^{N}
-    \left[S_j H(n_j + 1) P(\V{n} + \V{e}_j,t) - S_j H(n_j) P(\V{n},t)\right]
-\end{align}
-\end{subequations}
-
-We will treat the above on a term by term basis.
-
-\paragraph{Hop left~\eqref{eqn:trans_expectation_hl_term}} We will explicitly
-calculate the results for the cases \(i=1\) and \(i=N\) since the logic for
-other cases is a combination of these.
-
-\begin{itemize}
-    \item \(i=1\). Evaluating the sum over \(j\) explicitly,
-        \begin{align*}
-            a\biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + 1)
-                P\left(\left(n_1 - 1,n_2 + 1,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_3 + 1)
-                P\left(\left(n_1,n_2 - 1,n_3 +
-                1,n_4,\dotsc,n_N\right)^T,t\right) \\
-                + & \dotsb\\
-                + & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_N + 1)
-                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N + 1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + n_3 + \dotsb + n_N)
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = a\biggl\{
-                & \sum_{n_1} \sum_{n_2 = 1}^\infty \sum_{n_3} \dotso \sum_{n_N} n_1 n_2
-                P\left(\left(n_1 - 1,n_2,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso
-                \sum_{n_N} n_1 n_3
-                P\left(\left(n_1,n_2 - 1,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \dotsb\\
-                + & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_1 n_N
-                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + n_3 + \dotsb + n_N)
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = a\biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} \Bigl[(n_1+1)n_2 + n_1 \left(n_3
-                + n_4 + \dotsb + n_N\right)\Bigr]
-                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1\left(n_2 + n_3 + \dotsb +
-                n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = \hphantom{\biggl\{} a & \sum_{n_1} \dotsb \sum_{n_N} n_2
-                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
-            = \hphantom{\biggl\{} a & \E{n_2}(t)
-        \end{align*}
-    \item \(i=N\). Similarly,
-        \begin{align*}
-            a\biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + 1)
-                P\left(\left(n_1 - 1,n_2 + 1,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \sum_{n_1} \dotso \sum_{n_N} n_N (n_3 + 1)
-                P\left(\left(n_1,n_2 - 1,n_3 +
-                1,n_4,\dotsc,n_N\right)^T,t\right) \\
-                + & \dotsb\\
-                + & \sum_{n_1} \dotso \sum_{n_N} n_N (n_N + 1)
-                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N + 1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + n_3 + \dotsb + n_N)
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = a\biggl\{
-                & \sum_{n_1} \sum_{n_2 = 1}^\infty \sum_{n_3} \dotso \sum_{n_N} n_N n_2
-                P\left(\left(n_1 - 1,n_2,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso
-                \sum_{n_N} n_N n_3
-                P\left(\left(n_1,n_2 - 1,n_3,\dotsc,n_N\right)^T,t\right) \\
-                + & \dotsb\\
-                + & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty (n_N-1) n_N
-                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + n_3 + \dotsb + n_N)
-                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = a\biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} n_N \left(n_2 + n_3 +
-                \dotsb + n_{N-1} + (n_N - 1)\right)
-                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_N\left(n_2 + n_3 + \dotsb +
-                n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = - a & \sum_{n_1} \dotsb \sum_{n_N} n_N
-                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
-            = - a & \E{n_N}(t)
-        \end{align*}
-    \item \(i=2,\dotsc,N-1\). For these cases we have a combination of terms of
-        the type found in the cases \(i=1\) and \(i=N\):
-        \begin{equation*}
-            a\left(\E{n_{i+1}}-\E{n_i}\right)
-        \end{equation*}
-    \item The general expression for all \(i\) is
-        \begin{equation*}
-            \begin{dcases*}
-                a\E{n_2} & for \(i=1\)\\
-                a\left(\E{n_{i+1}} - \E{n_i}\right) & for \(i=2,\dotsc,N-1\)\\
-                -a\E{n_N} & for \(i=N\)
-            \end{dcases*}
-        \end{equation*}
-\end{itemize}
-
-\paragraph{Hop right~\eqref{eqn:trans_expectation_hr_term}}
-The working for the hop right terms is very similar to that for the hop left
-terms above. The general expression for all \(i\):
-\begin{equation*}
-    \begin{dcases*}
-        -(a+b)\E{n_1} & for \(i=1\)\\
-        (a+b)\left(\E{n_{i-1}} - \E{n_i}\right) & for \(i=2,\dotsc,N-1\)\\
-        (a+b)\E{n_N-1} & for \(i=N\)
-    \end{dcases*}
-\end{equation*}
-
-\paragraph{Inflow~\eqref{eqn:trans_expectation_in_term}}
-\begin{itemize}
-    \item \(i=1\).
-        \begin{align*}
-            c \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
-                -1,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = c \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} (n_1 + 1) P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = c \hphantom{\biggl\{} & \sum_{n_1} \dotso \sum_{n_N}
-            P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
-            = c \hphantom{\biggl\{} &
-        \end{align*}
-    \item \(i\ne 1\).
-        All terms cancel in this case, so the result is \(0\).
-\end{itemize}
-
-\paragraph{Outflow~\eqref{eqn:trans_expectation_out_term}}
-\begin{itemize}
-    \item \(i=N\).
-        \begin{align*}
-            d \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
-                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = d \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} (n_N + 1) P\left(\left(n_1
-                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
-                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right)
-            \biggr\} \\
-            = -d \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_{N-1}} P\left(\left(n_1
-                ,n_2,\dotsc,n_{N-1},0\right)^T,t\right)
-            \biggr\} \\
-            = -d \biggl\{
-                & 1 - P(n_N=0,t)
-            \biggr\}
-        \end{align*}
-    \item \(i \ne N\).
-        All terms cancel in this case due to the Heaviside function in the rates, so the result is 0.
-        %\begin{align*}
-        %    d \biggl\{
-        %        & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
-        %        ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
-        %        - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
-        %        ,n_2,\dotsc,n_N\right)^T,t\right)
-        %    \biggr\} \\
-        %    = d \biggl\{
-        %        & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_i P\left(\left(n_1
-        %        ,\dotsc,n_N\right)^T,t\right) \\
-        %        - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
-        %        ,n_2,\dotsc,n_N\right)^T,t\right)
-        %    \biggr\} \\
-        %    = -d & \underbrace{\sum_{n_i} n_i P(n_i,n_N=0,t)}_{\text{not sure about
-        %        this}}
-        %\end{align*}
-\end{itemize}
-
-\paragraph{Removal~\eqref{eqn:trans_expectation_rem_term}}
-\begin{align*}
-    \sum_{j=1}^N S_j \biggl\{
-        & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1,\dotsc,n_{j-1},n_j +
-        1,n_{j+1},\dotsc,n_N\right)^T,t\right)\\
-        - & \sum_{n_1} \dotso \sum_{n_N} n_i
-        P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
-    \biggr\}
-\end{align*}
-\begin{itemize}
-    \item \(i=j\) term. Similar to outflow but we now have arbitrary \(i\).
-        \begin{align*}
-            - S_i \biggl\{
-                & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
-                ,n_2,\dotsc,n_N\right)^T,t\right) \\
-                - & \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso
-                \sum_{n_N}
-                P\left(\left(n_1,n_2,\dotsc,n_{i-1},0,n_{i+1},\dotso,n_N\right)^T,t\right)
-            \biggr\}\\
-            = S_i \biggl\{
-                & -1 + P(n_i=0,t)
-            \biggr\}
-        \end{align*}
-    \item \(i \ne j\) terms.
-        All terms cancel in the same way as the outflow case.
-        %\begin{align*}
-        %    & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_1} \dotso
-        %    \sum_{n_{j-1}} \sum_{n_{j+1}} \dotso \sum_{n_N} n_i
-        %    P\left(\left(n_1,\dotsc,n_{j-1},0,n_{j+1},\dotso,n_N\right)^T,t\right)
-        %    \\
-        %    & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_i} n_i
-        %P\left(n_i,n_j = 0,t\right)
-        %\end{align*}
-\end{itemize}
+%\subsection{Deterministic mean-field equations}
+%The objective of this section is to obtain an equation governing the time
+%evolution of the expected value of the number of particles in each urn.
+%
+%The expected value of the entire state \(\V{n}\) at time \(t\) is
+%\begin{equation*}
+%    \E{\V{n}}(t) = \sum_{i=1}^N \langle n_i \rangle(t) \V{e}_i,
+%\end{equation*}
+%where \(\E{n_i}(t)\) is the expected value of the number of particles in urn
+%\(i\) at time \(t\) and is given by
+%\begin{align*}
+%    \E{n_i}(t) =& \sum_{j=0}^\infty j P(n_i = j,t)\\
+%    =& \sum_{j=0} j
+%    \sum_{\substack{\V{n} \text{ s.t.} \\ n_i=j}} P(\V{n},t)\\
+%    =& \sum_{j=0} j
+%    \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso \sum_{n_N} P(\V{n},t)\\
+%    =& \sum_{\V{n}} n_i P(\V{n},t),
+%\end{align*}
+%where \(P(n_i = j,t)\) denotes the marginal distribution of \(n_i\).
+%
+%Differentiating \(\E{n_i}\) with respect to time,
+%\begin{align*}
+%    \diff{(\E{n_i}(t))}{t} =& \sum_{\V{n}} n_i \diff{(P(\V{n},t))}{t}.
+%\end{align*}
+%
+%Substituting the expression \eqref{eqn:trans_me} into the above,
+%\begin{subequations}
+%\begin{align}
+%    \label{eqn:trans_expectation_hl_term}
+%    \diff{(\E{n_i}(t))}{t}
+%    = & \sum_\V{n} n_i \sum_{j=1}^{N-1}
+%    \left[a(n_{j+1}+1) P(\V{n} - \V{e}_j + \V{e}_{j+1},t) -
+%        an_{j+1} P(\V{n},t)\right] \\
+%    \label{eqn:trans_expectation_hr_term}
+%    + & \sum_\V{n} n_i \sum_{j=1}^{N-1}
+%    \left[(a+b)(n_j+1) P(\V{n} + \V{e}_j - \V{e}_{j+1},t) -
+%        (a+b)n_j P(\V{n},t)\right] \\
+%    \label{eqn:trans_expectation_in_term}
+%    + & \sum_\V{n} n_i
+%    \left[c P(\V{n} - \V{e}_1,t) - c P(\V{n},t)\right] \\
+%    \label{eqn:trans_expectation_out_term}
+%    + & \sum_\V{n} n_i
+%    \left[d H(n_N+1) P(\V{n} + \V{e}_N,t) - d H(n_N) P(\V{n},t)\right] \\
+%    \label{eqn:trans_expectation_rem_term}
+%    + & \sum_\V{n} n_i \sum_{j=1}^{N}
+%    \left[S_j H(n_j + 1) P(\V{n} + \V{e}_j,t) - S_j H(n_j) P(\V{n},t)\right]
+%\end{align}
+%\end{subequations}
+%
+%We will treat the above on a term by term basis.
+%
+%\paragraph{Hop left~\eqref{eqn:trans_expectation_hl_term}} We will explicitly
+%calculate the results for the cases \(i=1\) and \(i=N\) since the logic for
+%other cases is a combination of these.
+%
+%\begin{itemize}
+%    \item \(i=1\). Evaluating the sum over \(j\) explicitly,
+%        \begin{align*}
+%            a\biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + 1)
+%                P\left(\left(n_1 - 1,n_2 + 1,n_3,\dotsc,n_N\right)^T,t\right) \\
+%                + & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_3 + 1)
+%                P\left(\left(n_1,n_2 - 1,n_3 +
+%                1,n_4,\dotsc,n_N\right)^T,t\right) \\
+%                + & \dotsb\\
+%                + & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_N + 1)
+%                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N + 1\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + n_3 + \dotsb + n_N)
+%                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = a\biggl\{
+%                & \sum_{n_1} \sum_{n_2 = 1}^\infty \sum_{n_3} \dotso \sum_{n_N} n_1 n_2
+%                P\left(\left(n_1 - 1,n_2,n_3,\dotsc,n_N\right)^T,t\right) \\
+%                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso
+%                \sum_{n_N} n_1 n_3
+%                P\left(\left(n_1,n_2 - 1,n_3,\dotsc,n_N\right)^T,t\right) \\
+%                + & \dotsb\\
+%                + & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_1 n_N
+%                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_1 (n_2 + n_3 + \dotsb + n_N)
+%                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = a\biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} \Bigl[(n_1+1)n_2 + n_1 \left(n_3
+%                + n_4 + \dotsb + n_N\right)\Bigr]
+%                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_1\left(n_2 + n_3 + \dotsb +
+%                n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = \hphantom{\biggl\{} a & \sum_{n_1} \dotsb \sum_{n_N} n_2
+%                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+%            = \hphantom{\biggl\{} a & \E{n_2}(t)
+%        \end{align*}
+%    \item \(i=N\). Similarly,
+%        \begin{align*}
+%            a\biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + 1)
+%                P\left(\left(n_1 - 1,n_2 + 1,n_3,\dotsc,n_N\right)^T,t\right) \\
+%                + & \sum_{n_1} \dotso \sum_{n_N} n_N (n_3 + 1)
+%                P\left(\left(n_1,n_2 - 1,n_3 +
+%                1,n_4,\dotsc,n_N\right)^T,t\right) \\
+%                + & \dotsb\\
+%                + & \sum_{n_1} \dotso \sum_{n_N} n_N (n_N + 1)
+%                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N + 1\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + n_3 + \dotsb + n_N)
+%                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = a\biggl\{
+%                & \sum_{n_1} \sum_{n_2 = 1}^\infty \sum_{n_3} \dotso \sum_{n_N} n_N n_2
+%                P\left(\left(n_1 - 1,n_2,n_3,\dotsc,n_N\right)^T,t\right) \\
+%                + & \sum_{n_1} \sum_{n_2} \sum_{n_3=1}^\infty \sum_{n_4} \dotso
+%                \sum_{n_N} n_N n_3
+%                P\left(\left(n_1,n_2 - 1,n_3,\dotsc,n_N\right)^T,t\right) \\
+%                + & \dotsb\\
+%                + & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty (n_N-1) n_N
+%                P\left(\left(n_1,\dotsc,n_{N-1} - 1,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_N (n_2 + n_3 + \dotsb + n_N)
+%                P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = a\biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} n_N \left(n_2 + n_3 +
+%                \dotsb + n_{N-1} + (n_N - 1)\right)
+%                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_N\left(n_2 + n_3 + \dotsb +
+%                n_N\right) P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = - a & \sum_{n_1} \dotsb \sum_{n_N} n_N
+%                P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+%            = - a & \E{n_N}(t)
+%        \end{align*}
+%    \item \(i=2,\dotsc,N-1\). For these cases we have a combination of terms of
+%        the type found in the cases \(i=1\) and \(i=N\):
+%        \begin{equation*}
+%            a\left(\E{n_{i+1}}-\E{n_i}\right)
+%        \end{equation*}
+%    \item The general expression for all \(i\) is
+%        \begin{equation*}
+%            \begin{dcases*}
+%                a\E{n_2} & for \(i=1\)\\
+%                a\left(\E{n_{i+1}} - \E{n_i}\right) & for \(i=2,\dotsc,N-1\)\\
+%                -a\E{n_N} & for \(i=N\)
+%            \end{dcases*}
+%        \end{equation*}
+%\end{itemize}
+%
+%\paragraph{Hop right~\eqref{eqn:trans_expectation_hr_term}}
+%The working for the hop right terms is very similar to that for the hop left
+%terms above. The general expression for all \(i\):
+%\begin{equation*}
+%    \begin{dcases*}
+%        -(a+b)\E{n_1} & for \(i=1\)\\
+%        (a+b)\left(\E{n_{i-1}} - \E{n_i}\right) & for \(i=2,\dotsc,N-1\)\\
+%        (a+b)\E{n_N-1} & for \(i=N\)
+%    \end{dcases*}
+%\end{equation*}
+%
+%\paragraph{Inflow~\eqref{eqn:trans_expectation_in_term}}
+%\begin{itemize}
+%    \item \(i=1\).
+%        \begin{align*}
+%            c \biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
+%                -1,n_2,\dotsc,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = c \biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} (n_1 + 1) P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_1 P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = c \hphantom{\biggl\{} & \sum_{n_1} \dotso \sum_{n_N}
+%            P\left(\left(n_1,n_2,\dotsc,n_N\right)^T,t\right) \\
+%            = c \hphantom{\biggl\{} &
+%        \end{align*}
+%    \item \(i\ne 1\).
+%        All terms cancel in this case, so the result is \(0\).
+%\end{itemize}
+%
+%\paragraph{Outflow~\eqref{eqn:trans_expectation_out_term}}
+%\begin{itemize}
+%    \item \(i=N\).
+%        \begin{align*}
+%            d \biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
+%                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = d \biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} (n_N + 1) P\left(\left(n_1
+%                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
+%                ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_N} n_N P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right)
+%            \biggr\} \\
+%            = -d \biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_{N-1}} P\left(\left(n_1
+%                ,n_2,\dotsc,n_{N-1},0\right)^T,t\right)
+%            \biggr\} \\
+%            = -d \biggl\{
+%                & 1 - P(n_N=0,t)
+%            \biggr\}
+%        \end{align*}
+%    \item \(i \ne N\).
+%        All terms cancel in this case due to the Heaviside function in the rates, so the result is 0.
+%        %\begin{align*}
+%        %    d \biggl\{
+%        %        & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+%        %        ,\dotsc,n_{N-1},n_N+1\right)^T,t\right) \\
+%        %        - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+%        %        ,n_2,\dotsc,n_N\right)^T,t\right)
+%        %    \biggr\} \\
+%        %    = d \biggl\{
+%        %        & \sum_{n_1} \dotso \sum_{n_{N-1}} \sum_{n_N=1}^\infty n_i P\left(\left(n_1
+%        %        ,\dotsc,n_N\right)^T,t\right) \\
+%        %        - & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1
+%        %        ,n_2,\dotsc,n_N\right)^T,t\right)
+%        %    \biggr\} \\
+%        %    = -d & \underbrace{\sum_{n_i} n_i P(n_i,n_N=0,t)}_{\text{not sure about
+%        %        this}}
+%        %\end{align*}
+%\end{itemize}
+%
+%\paragraph{Removal~\eqref{eqn:trans_expectation_rem_term}}
+%\begin{align*}
+%    \sum_{j=1}^N S_j \biggl\{
+%        & \sum_{n_1} \dotso \sum_{n_N} n_i P\left(\left(n_1,\dotsc,n_{j-1},n_j +
+%        1,n_{j+1},\dotsc,n_N\right)^T,t\right)\\
+%        - & \sum_{n_1} \dotso \sum_{n_N} n_i
+%        P\left(\left(n_1,\dotsc,n_N\right)^T,t\right)
+%    \biggr\}
+%\end{align*}
+%\begin{itemize}
+%    \item \(i=j\) term. Similar to outflow but we now have arbitrary \(i\).
+%        \begin{align*}
+%            - S_i \biggl\{
+%                & \sum_{n_1} \dotso \sum_{n_N} P\left(\left(n_1
+%                ,n_2,\dotsc,n_N\right)^T,t\right) \\
+%                - & \sum_{n_1} \dotso \sum_{n_{i-1}} \sum_{n_{i+1}} \dotso
+%                \sum_{n_N}
+%                P\left(\left(n_1,n_2,\dotsc,n_{i-1},0,n_{i+1},\dotso,n_N\right)^T,t\right)
+%            \biggr\}\\
+%            = S_i \biggl\{
+%                & -1 + P(n_i=0,t)
+%            \biggr\}
+%        \end{align*}
+%    \item \(i \ne j\) terms.
+%        All terms cancel in the same way as the outflow case.
+%        %\begin{align*}
+%        %    & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_1} \dotso
+%        %    \sum_{n_{j-1}} \sum_{n_{j+1}} \dotso \sum_{n_N} n_i
+%        %    P\left(\left(n_1,\dotsc,n_{j-1},0,n_{j+1},\dotso,n_N\right)^T,t\right)
+%        %    \\
+%        %    & - \sum_{\substack{j=1 \\ j \ne i}}^N S_j \sum_{n_i} n_i
+%        %P\left(n_i,n_j = 0,t\right)
+%        %\end{align*}
+%\end{itemize}
 
 \subsubsection{System of equations}
-\todo{remove \(Y_i(t)\) and just use \(\E{n_i}\)}
-Let \(Y_i(t) = \E{n_i}(t), \V{Y}(t) = (Y_1(t),\dotsc,Y_N(t))^T\). Then,
-collecting all the terms above and organising the system of equations in matrix
+Collecting all the terms above and organising the system of equations in matrix
 form, we obtain (neglecting the terms relating to the probability of the
 number of particles in one urn to be 0).
 \begin{subequations}
     \label{eqn:exp_equation_system_zeroth}
     \begin{gather}
-        \diff{\V{Y}}{t} = A \V{Y}(t) + \V{b},
+        \diff{\V{\E{n}}}{t} = A \V{\E{n}}(t) + \V{b},
         \intertext{where}
         A=
         \begin{pmatrix}
@@ -804,11 +860,15 @@ number of particles in one urn to be 0).
 \end{figure}
 
 \FloatBarrier
-\subsection{Analysis of the mean-field equations}
-In order to analyse the mean-field equations, we consider a 1-urn pure-death
-process with death rate \(s H(n)\), where \(n\) is the number of particles in
-the urn. This simple process contains many of the difficult features of the full
-process above. In this case the master equation consists of the following system:
+\subsection{Analysis of the expectation equations}
+The expectation equations for the zeroth order transport process are a
+non-closed system. In order to analyse the extent to which the neglection of the
+terms relating to the probability of zero particles in
+\eqref{eqn:exp_equation_system_zeroth} is a good approximation, we consider a
+1-urn pure-death process with death rate \(s H(n)\), where \(n\) is the number
+of particles in the urn. This simple process contains many of the difficult
+features of the full process. In this case the master equation consists of the
+following system:
 
 \begin{align*}
     \diff{p_0}{t} =& s p_1\\
@@ -913,41 +973,6 @@ The inflow and hopping rates in remain the same as in
 Therefore the only terms that change are those that correspond to removal and
 outflow.
 
-Working through the algebra analogous to the above, one obtains the following
-linear system determining the mean field behaviour:
-\begin{subequations}
-    \label{eqn:exp_equation_system_first}
-    \begin{gather}
-        \diff{\V{Y}}{t} = A \V{Y}(t) + \V{b},
-        \intertext{where}
-        A=
-        \begin{pmatrix}
-            -(a+b) - S_1 & a & 0 & \dots & \dots & \dots & 0\\
-            (a+b)  & -(2a+b) - S_2 & a & 0 & \dots & \dots & 0\\
-            \vdots & & \ddots & \ddots & \ddots & & \vdots\\
-            0 & \dots & \dots & 0 & (a+b) & -(2a+b) - S_{N-1} & a\\
-            0 & \dots & \dots & \dots & 0 & (a+b) & -a -S_N - d
-        \end{pmatrix}
-        \intertext{and}
-        \V{b}=
-        \begin{pmatrix}
-            c\\
-            0\\
-            \vdots\\
-            0
-        \end{pmatrix}
-    \end{gather}
-\end{subequations}
-
-\begin{figure}[ht!]
-    \centering
-    \includegraphics{individual/figures/firstorderrealisation}
-    \caption{\label{fig:ex_first_order_real} Comparison between the time evolution of
-the sample means of the number of particles in each urn and the mean field
-approximation with first order removal kinetics.
-\(N=10,a=1,b=0.5,c=10,d=10,S_i=0\).}
-\end{figure}
-
 \subsection{Jump moments}
 In this section we give the first two jump moments \eqref{eqn:jump_moment} for
 the first-order transport problem.
@@ -982,11 +1007,42 @@ is given by
     \end{aligned}
 \end{equation}
 which is equivalent to the system \eqref{eqn:exp_equation_system_first} given
-above, but significantly easier to derive.
-
+below.
+\begin{subequations}
+    \label{eqn:exp_equation_system_first}
+    \begin{gather}
+        \diff{\V{\E{n}}}{t} = A \V{\E{n}}(t) + \V{b},
+        \intertext{where}
+        A=
+        \begin{pmatrix}
+            -(a+b) - S_1 & a & 0 & \dots & \dots & \dots & 0\\
+            (a+b)  & -(2a+b) - S_2 & a & 0 & \dots & \dots & 0\\
+            \vdots & & \ddots & \ddots & \ddots & & \vdots\\
+            0 & \dots & \dots & 0 & (a+b) & -(2a+b) - S_{N-1} & a\\
+            0 & \dots & \dots & \dots & 0 & (a+b) & -a -S_N - d
+        \end{pmatrix}
+        \intertext{and}
+        \V{b}=
+        \begin{pmatrix}
+            c\\
+            0\\
+            \vdots\\
+            0
+        \end{pmatrix}
+    \end{gather}
+\end{subequations}
 The coefficients \(\alpha_{1ij}\) (as in \eqref{eqn:linear_jump_moments_coeffs})
 are clearly the \(i,j\) elements of the matrix \(A\), and the \(\beta_{1i}\) are the
-elements of the vector \(\V{b}\) in \eqref{eqn:exp_equation_system_first}.
+elements of the vector \(\V{b}\).
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics{individual/figures/firstorderrealisation}
+    \caption{\label{fig:ex_first_order_real} Comparison between the time evolution of
+the sample means of the number of particles in each urn and the mean field
+approximation with first order removal kinetics.
+\(N=10,a=1,b=0.5,c=10,d=10,S_i=0\).}
+\end{figure}
 
 \subsubsection{Second jump moment}
 Similarly, we can find the second jump moments:
@@ -1060,7 +1116,7 @@ transition type separately.
     \end{aligned}\\
     &\begin{aligned}
         &\{\text{outflow}\} = \delta_{iN}\delta_{jN} (n_N - 1 - n_N)(n_N - 1 - n_N)d
-        n_N\\
+        n_N
         \label{eqn:mixed_jump_outflow}
     \end{aligned}\\
     &\begin{aligned}
@@ -1100,8 +1156,9 @@ evolution of the variances for the first-order transport problem. Substituting
     \end{aligned}
     \label{eqn:time_evo_variance_first_order}
 \end{equation}
-
-TODO: work this out in full.
+So, in general, the variance of \(n_i\) can depend on the covariances between
+\(n_i\) and all other \(n_j\). This suggests that we derive the corresponding
+equation for the covariances, which we do below.
 
 \subsubsection{No correlation}
 If we make the assumption that there is no covariance between any \(n_i, n_j,
@@ -1111,10 +1168,12 @@ i\neq j\), then the equation for the variance simplifies to
         \diff{\sigma_i^2}{t} &= (1-\delta_{i1})(a+b)\E{n_{i-1}} +
         \left[(2a+b) - \delta_{i1}a - \delta_{iN}(a+b) + S_i\right]\E{n_i}\\
         &\quad+ (1-\delta_{iN})a\E{n_{i+1}} + \delta_{i1}c + \delta_{iN}d \E{n_N}\\
-        &\quad+ 2 \alpha_{1ii} \sigma_i^2
+        &\quad+ 2 \alpha_{1ii} \sigma_i^2.
     \end{aligned}
     \label{eqn:time_evo_variance_first_order_no_corr}
 \end{equation}
+This system is only coupled with the other variances, as opposed to
+\eqref{eqn:time_evo_variance_first_order} which also depends on the covariances.
 
 \begin{figure}[ht!]
     \centering
