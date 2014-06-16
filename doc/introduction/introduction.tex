@@ -37,13 +37,70 @@ one may obtain a continuum model from a discrete model in the appropriate limits
 of a large number of urns and large numbers of particles. \todo{clarify, refs}
 
 \section{Literature review}
-\todo{write this section\ldots}
-\cite{chernyavsky2011transport} \cite{chernyavsky2012characterizing}
-others\ldots
+\subsection{Transport phenomena in physiology and biology}
+Transport phenomena are ubiquitous in physiological and biological systems and
+can been seen on a vast range of time- and length-scales.
 
 \begin{itemize}
-    \item Zero range processes (apparently introduced in Interaction of Markov
-        Processes (Frank Spitzer))
+    \item placenta
+    \item lung \cite{grebenkov2005diffusion}
+    \item ion channels
+    \item ants (traffic)
+\end{itemize}
+
+\subsection{Individual based models}
+\todo{\cite{schadschneider2010stochastic} reserve ``individual'' for
+non-stochastic models, and ``population'' stochastic}
+
+An individual based approach models a transport problem by analysing the
+stochastic interactions between discrete entities in a population.
+\citet{van2007stochastic} and \citet{gardiner2009stochastic} give thorough
+accounts of general stochastic processes. Generally, physical space is
+discretised into a finite set of locations, which we will refer to as ``urns'',
+which each hold a number of particles. Different types of models are based on
+the capacity of the urns and whether time is represented as a discrete or
+continuous variable. For example, exclusion processes (REF) and zero range
+processes REF blah.
+
+%Applying this approach to the problem of solute transport, the entities
+%represent the particles of the solute. The physical interaction of the particles
+%with each other gives rise to macroscopic phenomena such as diffusion. The
+%particle-scale interactions are modelled by a set of \emph{events}, which are
+%problem specific. Once the microscopic properties of an individual based model
+%have been specified, it is possible to create realisations of the system using a
+%stochastic simulation algorithm --- for example, the Gillespie algorithm
+%(described below). The model is random in nature, with the events being randomly
+%selected from an appropriate probability distribution. As such, in order to find
+%the statistical properties of the system, an ensemble of realisations can be
+%created from which properties can be estimated. In addition to this, we can make
+%theoretical predictions (in some cases, exact expressions, and in others,
+%approximations) of the statistical properties of an individual based system.
+%These are typically derived from a Master equation, which describes the time
+%evolution of the probability distribution defining the system.
+
+The two main types of randomness in individual based models are
+\begin{itemize}
+    \item Intrinsic noise --- randomness arising from the stochastic nature of the
+        physical problem;
+    \item Quenched disorder --- randomness of a parameter of the system which is
+        usually chosen and fixed before allowing the system to evolve.
+\end{itemize}
+In solute transport in a disordered medium, a source of quenched disorder is the
+randomness of the sink locations.
+\todo{elaborate?}
+
+We are interested in macroscopic features of the system, including their
+statistics, which are expected to arise from both types of disorder and their
+interactions.
+
+\begin{itemize}
+    \item General stochastic processes \cite{van2007stochastic},
+        \cite{gardiner2009stochastic}
+    \item General stochastic processes and specifically transport processes
+        \cite{schadschneider2010stochastic}
+    \item Exclusion processes
+    \item Zero range processes (apparently introduced in
+        \cite{spitzer1970interaction})
         \begin{itemize}
             \item There is a mapping from exclusion processes to ZRPs (under
                 certain conditions)
@@ -56,5 +113,23 @@ others\ldots
             \item ``Zero-range process with open boundaries'' gives the
                 open-boundaries stationary distribution (our problem)
         \end{itemize}
+    \item ``Quantum formalism'' of the master equation allows analogies
+        with quantum spin chains to be made
 \end{itemize}
+
+\subsubsection{Stochastic simluation}
+\begin{itemize}
+    \item Gillespie \cite{gillespie1976general} \cite{gillespie1977exact}
+    \item Others (next reaction method etc.) \cite{anderson2007modified} gives
+        summary of a few
+    \item These give single realisations --- obtain estimates of distributions
+        of observables from Monte-Carlo
+    \item Cheap to run
+    \item Useful when closed-form expressions for distributions are difficult or
+        impossible to find
+\end{itemize}
+
+\subsection{Continuum based models}
+\cite{chernyavsky2011transport} \cite{chernyavsky2012characterizing}
+others\ldots
 

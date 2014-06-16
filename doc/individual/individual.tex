@@ -1,36 +1,4 @@
 \chapter{Individual based approach}
-An individual based approach models a problem by analysing the interactions
-between discrete entities. Applying this approach to the problem of solute
-transport, the entities represent the particles of the solute. The physical
-interaction of the particles with each other gives rise to macroscopic phenomena
-such as diffusion. The particle-scale interactions are modelled by a set of
-\emph{events}, which are problem specific. Once the microscopic properties of a
-an individual based model have been specified, it is possible to create
-realisations of the system using a stochastic simulation algorithm --- for
-example, the Gillespie algorithm (described below). The model
-is random in nature, with the events being randomly selected from an appropriate
-probability distribution. As such, in order to find the statistical properties
-of the system, an ensemble of realisations can be created from which properties
-can be estimated. In addition to this, we can make theoretical predictions (in
-some cases, exact expressions, and in others, approximations) of the statistical
-properties of an individual based system. These are typically derived from a
-Master equation, which describes the time evolution of the probability
-distribution defining the system.
-
-The two main types of randomness in individual based models are
-\begin{itemize}
-    \item Intrinsic noise --- randomness arising from the stochastic nature of the
-        physical problem;
-    \item Quenched disorder --- randomness of a parameter of the system which is
-        usually chosen and fixed before allowing the system to evolve.
-\end{itemize}
-In solute transport in a disordered medium, a source of quenched disorder is the
-randomness of the sink locations.
-\todo{elaborate?}
-
-We are interested in macroscopic features of the system, including their
-statistics, which arise from the both types of disorder and their interactions.
-
 \section{Problem formulation}
 In one dimension, we formulate the problem by discretising space into a
 finite set of locations at equal intervals. To each spatial location (``urn'') we assign
@@ -1195,9 +1163,6 @@ corresponding plot generated from the sample covariances of 9999 Gillespie runs
 for the same parameters is shown in
 figure~\ref{fig:ex_covariance_first_order_gillespie}.
 
-\todo{plot this in a less terrible way}
-\todo{include table of numerical values}
-
 \begin{figure}
     \centering
     \includegraphics{individual/figures/covariance_exact_40}
@@ -1210,6 +1175,9 @@ parameters \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\)}
     \caption{\label{fig:ex_covariance_first_order_gillespie}Sample covariance
 matrix (from 9999 runs) for parameters \(N=10,a=1,b=0.5,c=10,d=10,S_i=0\)}
 \end{figure}
+
+\todo{plot this in a less terrible way}
+\todo{include table of numerical values}
 
 The exact covariance equation \eqref{eqn:time_evo_covar_linear_jump_moments} is
 solved numerically using \texttt{Mathematica}. The numerical solution has very
