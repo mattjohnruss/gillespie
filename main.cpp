@@ -4,8 +4,9 @@
 #include <cstdlib>
 
 #include <boost/random.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
-#include <boost/random/discrete_distribution.hpp>
+
+// for no apparent reason, boost/random.hpp doesn't include this header
+#include <boost/random/random_device.hpp>
 
 #include "config.h"
 
@@ -93,10 +94,18 @@ int main(int argc, char **argv)
     // Add n_init molecules to the first urn
     //n[0] = n_init;
 
+    // "cryptographically" RNG used to seed the other RNGs.
+    // Need this because other seed methods such as getpid() + time() etc can
+    // produce duplicate seeds
+    boost::random::random_device rd;
+
     // RNG for uniform random distribution
-    boost::mt19937 rng(time(0) + getpid());
+    boost::mt19937 rng(rd());
+
+    // Uniform distribution object
     boost::random::uniform_real_distribution<double> uniform_dist(0,1);
 
+    // Variate generator for uniform distribution
     boost::variate_generator<
         boost::mt19937&,
         boost::random::uniform_real_distribution<double> >
@@ -105,7 +114,7 @@ int main(int argc, char **argv)
     // RNG for discrete distribution based on T
     // (dist constructed inside time loop because it is different for each
     // timestep)
-    boost::mt19937 rng2(time(0) + getpid()+1);
+    boost::mt19937 rng2(rd());
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;

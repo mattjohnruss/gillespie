@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-c -Wall -O3 \
 	   -I/home/mrussell/Applications/boost_1_55_0
-LDFLAGS=
+LDFLAGS=-lboost_random
 
 SOURCES=main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
