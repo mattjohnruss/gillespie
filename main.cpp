@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     // Add n_init molecules to the first urn
     //n[0] = n_init;
 
-    // Uniform random number generator
+    // RNG for uniform random distribution
     boost::mt19937 rng(time(0) + getpid());
     boost::random::uniform_real_distribution<double> uniform_dist(0,1);
 
@@ -102,7 +102,9 @@ int main(int argc, char **argv)
         boost::random::uniform_real_distribution<double> >
             uniform_gen(rng, uniform_dist);
 
-    // Discrete distribution based on T
+    // RNG for discrete distribution based on T
+    // (dist constructed inside time loop because it is different for each
+    // timestep)
     boost::mt19937 rng2(time(0) + getpid()+1);
 
     // Storage for uniformly random number used for timestep
