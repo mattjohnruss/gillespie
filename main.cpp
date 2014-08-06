@@ -12,12 +12,21 @@
 
 int main(int argc, char **argv)
 {
-    if(!(argc == 10))
+    if(!(argc == 10 || argc == 12))
     {
         std::cerr << "Usage: " << argv[0]
-                  << " n_urns n_init a b inflow outflow t_max outfile interval"
+                  << " n_urns n_init a b inflow outflow t_max outfile interval [ m v ]"
                   << std::endl;
         exit(1);
+    }
+
+    // Flag for lognormal sinks
+    bool lognormal_sinks = false;
+
+    if(argc == 12)
+    {
+        // Set the flag if we have mean and variance on the command line
+        lognormal_sinks = true;
     }
 
     // Set the initial number of "molecules" of each "species" (in this case,
@@ -83,6 +92,28 @@ int main(int argc, char **argv)
     iss.str(argv[9]);
     iss >> output_interval;
 
+    // Desired mean and variance of the lognormal distribution
+    // must declare these variables outside the if statement and set some
+    // random values to stop boost complaining (even though we won't use the
+    // distribution if lognormal_sinks == false
+    double lognormal_mean = 1;
+    double lognormal_variance = 1;
+
+    // If we are doing lognormal sink strengths
+    if(lognormal_sinks)
+    {
+        // Set the desired mean and variance of the lognormal distribution
+        iss.str("");
+        iss.clear();
+        iss.str(argv[10]);
+        iss >> lognormal_mean;
+
+        iss.str("");
+        iss.clear();
+        iss.str(argv[11]);
+        iss >> lognormal_variance;
+    }
+
     // Make a file object with the given filename
     std::ofstream outfile(outfile_name.c_str());
 
@@ -120,10 +151,6 @@ int main(int argc, char **argv)
     boost::mt19937 rng_lognormal(rd());
 
     // Calculate the lognormal parameters from desired mean and variance
-
-    // Set the desired mean and variance of the lognormal distribution
-    double lognormal_mean = 1;
-    double lognormal_variance = 0.5;
 
     // Calculate the m and s params for the distribution based on mean and var
     double lognormal_m =
@@ -163,9 +190,19 @@ int main(int argc, char **argv)
 
     std::vector<double> T_removal(n_removal);
 
-    for(unsigned i = 0; i < n_removal; i++)
+    if(lognormal_sinks)
     {
-        T_removal[i] = lognormal_gen();
+        for(unsigned i = 0; i < n_removal; i++)
+        {
+            T_removal[i] = lognormal_gen();
+        }
+    }
+    else
+    {
+        for(unsigned i = 0; i < n_removal; i++)
+        {
+            T_removal[i] = 0.;
+        }
     }
 
     // Total of rates
