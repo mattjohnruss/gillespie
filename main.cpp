@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     boost::random::random_device rd;
 
     // RNG for uniform random distribution
-    boost::mt19937 rng(rd());
+    boost::mt19937 rng_uniform(rd());
 
     // Uniform distribution object
     boost::random::uniform_real_distribution<double> uniform_dist(0,1);
@@ -109,12 +109,37 @@ int main(int argc, char **argv)
     boost::variate_generator<
         boost::mt19937&,
         boost::random::uniform_real_distribution<double> >
-            uniform_gen(rng, uniform_dist);
+            uniform_gen(rng_uniform, uniform_dist);
 
     // RNG for discrete distribution based on T
     // (dist constructed inside time loop because it is different for each
     // timestep)
-    boost::mt19937 rng2(rd());
+    boost::mt19937 rng_discrete(rd());
+
+    // RNG for lognormal distribution for the sink strengths
+    boost::mt19937 rng_lognormal(rd());
+
+    // Calculate the lognormal parameters from desired mean and variance
+
+    // Set the desired mean and variance of the lognormal distribution
+    double lognormal_mean = 1;
+    double lognormal_variance = 0.5;
+
+    // Calculate the m and s params for the distribution based on mean and var
+    double lognormal_m =
+        std::log(std::pow(lognormal_mean,2)/std::sqrt(lognormal_variance + std::pow(lognormal_mean,2)));
+    double lognormal_s =
+        std::sqrt(std::log(1+lognormal_variance/std::pow(lognormal_mean,2)));
+
+    // Lognormal distribution object
+    boost::random::lognormal_distribution<double>
+        lognormal_dist(lognormal_m, lognormal_s);
+
+    // Variate generator for lognormal sink distribution
+    boost::random::variate_generator<
+        boost::mt19937&,
+        boost::random::lognormal_distribution<double> >
+            lognormal_gen(rng_lognormal, lognormal_dist);
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;
@@ -140,7 +165,7 @@ int main(int argc, char **argv)
 
     for(unsigned i = 0; i < n_removal; i++)
     {
-        T_removal[i] = 0.;
+        T_removal[i] = lognormal_gen();
     }
 
     // Total of rates
@@ -247,8 +272,12 @@ int main(int argc, char **argv)
         boost::random::discrete_distribution<>
             discrete_dist(probs.begin(),probs.end());
 
+        // we don't make a variate generator here because it makes no difference
+        // to the values of anything (it's just encapsulation of a dist and a
+        // rng) and because we are making a distribution every timestep
+
         // Randomly choose event
-        unsigned event = discrete_dist(rng2);
+        unsigned event = discrete_dist(rng_discrete);
 
         // Output must happen here to avoid saving the previous state of the
         // urns
