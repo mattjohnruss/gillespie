@@ -357,10 +357,11 @@ int main(int argc, char **argv)
         // Increment time with the timestep
         time += dt;
 
-        if(total_particles == 0)
-        {
-            break;
-        }
+        //why should we do this???? pretty sure we shouldn't
+        //if(total_particles == 0)
+        //{
+        //    break;
+        //}
 
         //// Full output for testing
 
