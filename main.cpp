@@ -322,7 +322,7 @@ int main(int argc, char **argv)
 
         // Do outputs at appropriate intervals until the time of the last
         // output exceeds the new actual time (t+dt)
-        for(unsigned l = k+1; l*output_interval < time+dt; l++)
+        for(unsigned l = k+1; l*output_interval < time+dt && l*output_interval <= t_max; l++)
         {
             outfile << l*output_interval;
 
