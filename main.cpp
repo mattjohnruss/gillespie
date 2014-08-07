@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <cstdlib>
+#include <sstream>
 
 #include <boost/random.hpp>
 
