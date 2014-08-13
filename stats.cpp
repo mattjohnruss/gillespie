@@ -7,15 +7,29 @@
 #include <cstdlib>
 #include <cmath>
 
+unsigned number_of_digits(unsigned n)
+{
+    unsigned digits = 0;
+
+    do
+    {
+        n /= 10;
+        digits++;
+    }
+    while (n != 0);
+
+    return digits;
+}
+
 int main(int argc, char **argv)
 {
     // Parse command line arguments
     // ----------------------------
 
     // If we don't have the required number of arguments print a message and exit
-    if(argc != 3)
+    if(argc != 3 && argc != 4)
     {
-        std::cout << "Usage: " << argv[0] << " n_files file_prefix\n";
+        std::cerr << "Usage: " << argv[0] << " n_files file_prefix [leading_zeros]\n";
         exit(1);
     }
 
@@ -64,6 +78,25 @@ int main(int argc, char **argv)
     // Temporary storage for lines
     std::vector<double> temp_line;
 
+    // Storage for the number of zeros to pad the file names with
+    unsigned n_padding_zeros = 0;
+
+    if(argc == 4)
+    {
+        args_stream.str("");
+        args_stream.clear();
+        args_stream.str(argv[3]);
+        args_stream >> n_padding_zeros;
+    }
+    else
+    {
+        n_padding_zeros = number_of_digits(n_files);
+    }
+
+    // C format string for padding with the correct number of zeros
+    char zeros_fmt_str[8];
+    std::sprintf(zeros_fmt_str, "%%0%ii.dat", n_padding_zeros);
+
     // Loop over the files
     for(unsigned f = 0; f < n_files; f++)
     {
@@ -71,7 +104,7 @@ int main(int argc, char **argv)
         char file_suffix[30];
 
         // Print the correct suffix into file_suffix
-        std::sprintf(file_suffix, "%04i.dat", f+1);
+        std::sprintf(file_suffix, zeros_fmt_str, f+1);
 
         // TODO remove debug output
         std::cout << file_prefix + file_suffix << std::endl;
