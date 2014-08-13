@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         std::sprintf(file_suffix, zeros_fmt_str, f+1);
 
         // TODO remove debug output
-        std::cout << file_prefix + file_suffix << std::endl;
+        //std::cout << file_prefix + file_suffix << std::endl;
 
         // Open the file
         file.open((file_prefix + file_suffix).c_str());
@@ -172,6 +172,8 @@ int main(int argc, char **argv)
         // Close the file
         file.close();
     }
+
+    std::cout << "Read " << n_files << " files\n";
 
     // Calculate statistics
     // --------------------
