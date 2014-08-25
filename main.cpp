@@ -9,110 +9,90 @@
 // for no apparent reason, boost/random.hpp doesn't include this header
 #include <boost/random/random_device.hpp>
 
+#include <boost/program_options.hpp>
+
 #include "config.h"
+
+namespace po = boost::program_options;
 
 int main(int argc, char **argv)
 {
-    if(!(argc == 10 || argc == 12))
+    // Declare parameter variables so we can pass them to add_options() below
+
+    // Number of urns
+    unsigned n_urns = 0;
+
+    // Number of particles initially in the first urn
+    unsigned n_init = 0;
+
+    // a
+    double a = 0;
+
+    // b
+    double b = 0;
+
+    // Inflow rate
+    double T_inflow = 0;
+
+    // Outflow rate
+    double T_outflow = 0;
+
+    // Maximum time
+    double t_max = 0;
+
+    // Output file
+    std::string outfile_name;
+
+    // Output interval
+    double output_interval;
+
+    // Desired mean and variance of the lognormal distribution
+    double lognormal_mean = 1;
+    double lognormal_variance = 1;
+
+    // Options description object
+    po::options_description desc("Allowed options");
+
+    // Add all the possible cmd line options to the desc cobject
+    desc.add_options()
+        ("help", "produce help message")
+        ("n_urns,n", po::value<unsigned>(&n_urns)->required(), "number of urns")
+        ("n_init", po::value<unsigned>(&n_init), "initial number of particles")
+        ("a,a", po::value<double>(&a)->required(), "diffusion rate")
+        ("b,b", po::value<double>(&b)->required(), "advection rate")
+        ("inflow,i", po::value<double>(&T_inflow)->required(), "inflow rate")
+        ("outflow,o", po::value<double>(&T_outflow)->required(), "outflow rate")
+        ("t_max,t", po::value<double>(&t_max)->required(), "maximum time")
+        ("outfile,f", po::value<std::string>(&outfile_name)->required(), "output file name")
+        ("interval,d", po::value<double>(&output_interval)->required(), "output interval")
+        ("lognormal_mean,m", po::value<double>(&lognormal_mean), "mean of the lognormal distribution")
+        ("lognormal_variance,v", po::value<double>(&lognormal_variance), "variance of the lognormal distribution");
+
+    // Map for the the variables
+    po::variables_map vm;
+
+    // Parse the command line and store the args in the variables map
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if(vm.count("help"))
     {
-        std::cerr << "Usage: " << argv[0]
-                  << " n_urns n_init a b inflow outflow t_max outfile interval [ m v ]"
-                  << std::endl;
-        exit(1);
+        std::cout << desc << '\n';
+        return 1;
     }
 
     // Flag for lognormal sinks
     bool lognormal_sinks = false;
 
-    if(argc == 12)
+    if(vm.count("lognormal_mean") && vm.count("lognormal_variance"))
     {
         // Set the flag if we have mean and variance on the command line
         lognormal_sinks = true;
     }
-
-    // Set the initial number of "molecules" of each "species" (in this case,
-    // the number of molecules in each urn)
-    unsigned n_urns = 0;
-
-    std::istringstream iss(argv[1]);
-    iss >> n_urns;
-
-    // Set the number of molecules initially in the first urn
-    unsigned n_init = 0;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[2]);
-    iss >> n_init;
-
-    // Set a
-    double a = 0;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[3]);
-    iss >> a;
-
-    // Set b
-    double b = 0;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[4]);
-    iss >> b;
-
-    // Set the inflow rate
-    double T_inflow = 0;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[5]);
-    iss >> T_inflow;
-
-    // Set the outflow rate
-    double T_outflow = 0;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[6]);
-    iss >> T_outflow;
-
-    // Set the maximum time
-    double t_max = 0;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[7]);
-    iss >> t_max;
-
-    // Set the output file
-    std::string outfile_name;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[8]);
-    iss >> outfile_name;
-
-    // Set the output interval
-    double output_interval;
-    iss.str("");
-    iss.clear();
-    iss.str(argv[9]);
-    iss >> output_interval;
-
-    // Desired mean and variance of the lognormal distribution
-    // must declare these variables outside the if statement and set some
-    // random values to stop boost complaining (even though we won't use the
-    // distribution if lognormal_sinks == false
-    double lognormal_mean = 1;
-    double lognormal_variance = 1;
-
-    // If we are doing lognormal sink strengths
-    if(lognormal_sinks)
+    else if(vm.count("lognormal_mean") || vm.count("lognormal_variance"))
     {
-        // Set the desired mean and variance of the lognormal distribution
-        iss.str("");
-        iss.clear();
-        iss.str(argv[10]);
-        iss >> lognormal_mean;
-
-        iss.str("");
-        iss.clear();
-        iss.str(argv[11]);
-        iss >> lognormal_variance;
+        std::cout << "lognormal mean or variance specified without the other!\n";
+        return 1;
     }
 
     // Make a file object with the given filename
@@ -123,7 +103,7 @@ int main(int argc, char **argv)
     // Declare the storage for the urns
     std::vector<unsigned> n(n_urns,0);
 
-    // Add n_init molecules to the first urn
+    // Add n_init particles to the first urn
     //n[0] = n_init;
 
     // "cryptographically" RNG used to seed the other RNGs.
