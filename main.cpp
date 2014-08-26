@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
     // Add all the possible cmd line options to the desc cobject
     desc.add_options()
-        ("help", "produce help message")
+        ("help,h", "produce help message")
         ("n_urns,n", po::value<unsigned>(&n_urns)->required(), "number of urns")
         ("n_init", po::value<unsigned>(&n_init), "initial number of particles")
         ("a,a", po::value<double>(&a)->required(), "diffusion rate")
@@ -71,13 +71,16 @@ int main(int argc, char **argv)
 
     // Parse the command line and store the args in the variables map
     po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
 
+    // If the help arg is given, output the options and exit
     if(vm.count("help"))
     {
         std::cout << desc << '\n';
         return 1;
     }
+
+    // Check for required args and output any errors
+    po::notify(vm);
 
     // Flag for lognormal sinks
     bool lognormal_sinks = false;
