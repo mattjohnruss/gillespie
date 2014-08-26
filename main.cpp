@@ -5,10 +5,7 @@
 #include <sstream>
 
 #include <boost/random.hpp>
-
-// for no apparent reason, boost/random.hpp doesn't include this header
-#include <boost/random/random_device.hpp>
-
+#include <boost/random/random_device.hpp> // boost/random.hpp doesn't include this header
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -42,7 +39,7 @@ int main(int argc, char **argv)
     std::string outfile_name;
 
     // Output interval
-    double output_interval;
+    double output_interval = 0.01;
 
     // Desired mean and variance of the lognormal distribution
     double lognormal_mean = 1;
@@ -62,9 +59,10 @@ int main(int argc, char **argv)
         ("outflow,o", po::value<double>(&T_outflow)->required(), "outflow rate")
         ("t_max,t", po::value<double>(&t_max)->required(), "maximum time")
         ("outfile,f", po::value<std::string>(&outfile_name)->required(), "output file name")
-        ("interval,d", po::value<double>(&output_interval)->required(), "output interval")
+        ("interval,d", po::value<double>(&output_interval), "output interval")
         ("lognormal_mean,m", po::value<double>(&lognormal_mean), "mean of the lognormal distribution")
-        ("lognormal_variance,v", po::value<double>(&lognormal_variance), "variance of the lognormal distribution");
+        ("lognormal_variance,v", po::value<double>(&lognormal_variance), "variance of the lognormal distribution")
+        ("last_only,l","only output the last timestep");
 
     // Map for the the variables
     po::variables_map vm;
@@ -85,15 +83,21 @@ int main(int argc, char **argv)
     // Flag for lognormal sinks
     bool lognormal_sinks = false;
 
+    // Set the flag if we have mean and variance on the command line
     if(vm.count("lognormal_mean") && vm.count("lognormal_variance"))
     {
-        // Set the flag if we have mean and variance on the command line
         lognormal_sinks = true;
     }
     else if(vm.count("lognormal_mean") || vm.count("lognormal_variance"))
     {
         std::cout << "lognormal mean or variance specified without the other!\n";
         return 1;
+    }
+
+    // Set the output interval to t_max if the flag is set
+    if(vm.count("last_only"))
+    {
+        output_interval = t_max;
     }
 
     // Make a file object with the given filename
