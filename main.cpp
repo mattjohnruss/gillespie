@@ -2,7 +2,6 @@
 #include <vector>
 #include <fstream>
 #include <cstdlib>
-#include <sstream>
 
 #include <boost/random.hpp>
 #include <boost/random/random_device.hpp> // boost/random.hpp doesn't include this header
@@ -53,13 +52,13 @@ int main(int argc, char **argv)
         ("help,h", "produce help message")
         ("n_urns,n", po::value<unsigned>(&n_urns)->required(), "number of urns")
         ("n_init", po::value<unsigned>(&n_init), "initial number of particles")
-        ("a,a", po::value<double>(&a)->required(), "diffusion rate")
-        ("b,b", po::value<double>(&b)->required(), "advection rate")
-        ("inflow,i", po::value<double>(&T_inflow)->required(), "inflow rate")
-        ("outflow,o", po::value<double>(&T_outflow)->required(), "outflow rate")
+        ("diffusion,a", po::value<double>(&a)->required(), "diffusion rate")
+        ("advection,b", po::value<double>(&b)->required(), "advection rate")
+        ("inflow,c", po::value<double>(&T_inflow)->required(), "inflow rate")
+        ("outflow,d", po::value<double>(&T_outflow)->required(), "outflow rate")
         ("t_max,t", po::value<double>(&t_max)->required(), "maximum time")
         ("outfile,f", po::value<std::string>(&outfile_name)->required(), "output file name")
-        ("interval,d", po::value<double>(&output_interval), "output interval")
+        ("interval,i", po::value<double>(&output_interval), "output interval")
         ("lognormal_mean,m", po::value<double>(&lognormal_mean), "mean of the lognormal distribution")
         ("lognormal_variance,v", po::value<double>(&lognormal_variance), "variance of the lognormal distribution")
         ("last_only,l","only output the last timestep");
