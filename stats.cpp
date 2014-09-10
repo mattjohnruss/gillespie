@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <iomanip>
 
 unsigned number_of_digits(unsigned n)
 {
@@ -192,6 +193,9 @@ int main(int argc, char **argv)
     // File streams for mean and covariance
     std::ofstream mean_file((file_prefix + "_mean.dat").c_str());
     std::ofstream covariance_file((file_prefix + "_covariance.dat").c_str());
+
+    mean_file << std::setprecision(10);
+    covariance_file << std::setprecision(10);
 
     // Loop over the nodes (timesteps)
     for(unsigned j = 0; j < n_nodes; j++)

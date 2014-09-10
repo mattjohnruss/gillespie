@@ -1,6 +1,7 @@
 main
 mean
 stats
+write_cmds
 *.o
 *~
 *.swp
@@ -18,3 +19,5 @@ stats
 *pstool*
 *.fdb_latexmk
 *.fls
+conv_plots/*/*conv/*.tex
+!conv_plots/*/*conv/*.dat

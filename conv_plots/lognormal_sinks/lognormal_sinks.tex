@@ -1,0 +1,103 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1.5cm,landscape]{geometry}
+\usepackage{mathtools}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{fixltx2e}
+\usepackage{import}
+\usepackage{adjustbox}
+\usepackage{color}
+\usepackage{appendix}
+
+%include a gnuplot graph by subimport-ing its .tex file from the right place
+\newcommand{\includegraph}[3][]{\adjustbox{#1}{\subimport{#2/}{#3}}}
+
+\newcommand{\E}[1]{\langle #1 \rangle}
+
+\begin{document}
+\section{Means}
+
+% means
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{mean_conv}{mean_conv_1}
+        \caption{\(n_1\)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{mean_conv}{mean_conv_2}
+        \caption{\(n_2\)}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{mean_conv}{mean_conv_3}
+        \caption{\(n_3\)}
+    \end{subfigure}
+    \caption{Sample averages of urn occupancy against sample size for (a) \(n_1\), (b) \(n_2\) and (c) \(n_3\)}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{mean_conv}{mean_conv_fit_1}
+        \caption{\(n_1\)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{mean_conv}{mean_conv_fit_2}
+        \caption{\(n_2\)}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{mean_conv}{mean_conv_fit_3}
+        \caption{\(n_3\)}
+    \end{subfigure}
+    \caption{\(\log\)-\(\log\) plot of sample averages against sample size for (a) \(n_1\), (b) \(n_2\) and (c) \(n_3\), and best-fit approximation of a power-law curve (green)}
+\end{figure}
+\FloatBarrier
+
+\clearpage
+% covariances
+\section{Covariances}
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{cov_conv}{cov_conv_1_2}
+        \caption{\(\sigma_{12}\)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{cov_conv}{cov_conv_1_3}
+        \caption{\(\sigma_{13}\)}
+    \end{subfigure}
+    \caption{Sample covariances between urn occupancies against sample size for (a) \(\sigma_{12}\), (b) \(\sigma_{13}\)}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{cov_conv}{cov_conv_fit_1_2}
+        \caption{\(\sigma_{12}\)}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraph[width=\textwidth]{cov_conv}{cov_conv_fit_1_3}
+        \caption{\(\sigma_{13}\)}
+    \end{subfigure}
+    \caption{\(\log\)-\(\log\) plot of sample covariances against sample size for (a) \(\sigma_{12}\), (b) \(\sigma_{13}\), and best-fit approximation of a power-law curve (green)}
+\end{figure}
+
+
+\end{document}
