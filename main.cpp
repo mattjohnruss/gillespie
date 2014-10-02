@@ -2,9 +2,8 @@
 #include <vector>
 #include <fstream>
 #include <cstdlib>
+#include <random>
 
-#include <boost/random.hpp>
-#include <boost/random/random_device.hpp> // boost/random.hpp doesn't include this header
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -117,21 +116,21 @@ int main(int argc, char **argv)
     // "cryptographically" RNG used to seed the other RNGs.
     // Need this because other seed methods such as getpid() + time() etc can
     // produce duplicate seeds
-    boost::random::random_device rd;
+    std::random_device rd;
 
     // RNG for uniform random distribution
-    boost::mt19937 rng_uniform(rd());
+    std::mt19937 rng_uniform(rd());
 
     // Uniform distribution object
-    boost::random::uniform_real_distribution<double> uniform_dist(0,1);
+    std::uniform_real_distribution<double> uniform_dist(0,1);
 
     // RNG for discrete distribution based on T
     // (dist constructed inside time loop because it is different for each
     // timestep)
-    boost::mt19937 rng_discrete(rd());
+    std::mt19937 rng_discrete(rd());
 
     // RNG for lognormal distribution for the sink strengths
-    boost::mt19937 rng_lognormal(rd());
+    std::mt19937 rng_lognormal(rd());
 
     // Calculate the lognormal parameters from desired mean and variance
 
@@ -142,7 +141,7 @@ int main(int argc, char **argv)
         std::sqrt(std::log(1+lognormal_variance/std::pow(lognormal_mean,2)));
 
     // Lognormal distribution object
-    boost::random::lognormal_distribution<double>
+    std::lognormal_distribution<double>
         lognormal_dist(lognormal_m, lognormal_s);
 
     // Storage for uniformly random number used for timestep
@@ -283,7 +282,7 @@ int main(int argc, char **argv)
         dt = 1./T0*log(1./r1);
 
         // Set up weighted discrete distribution with the probabilities
-        boost::random::discrete_distribution<>
+        std::discrete_distribution<>
             discrete_dist(probs.begin(),probs.end());
 
         // Randomly choose event
