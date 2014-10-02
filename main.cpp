@@ -233,10 +233,9 @@ int main(int argc, char **argv)
         // Reset total_particles
         total_particles = 0;
 
+        // Calculate the "reaction" rates for all events
         for(unsigned j = 0; j < n_urns; j++)
         {
-            // Calculate the "reaction" rates for all events
-
             // There are only n_urns-1 move events in each direction
             if(j < n_urns-1)
             {
