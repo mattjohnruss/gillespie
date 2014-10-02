@@ -181,14 +181,14 @@ int main(int argc, char **argv)
 
     if(lognormal_sinks)
     {
-        for(unsigned i = 0; i < n_removal; i++)
+        for(unsigned i = 0; i < n_removal; ++i)
         {
             T_removal[i] = lognormal_gen();
         }
     }
     else
     {
-        for(unsigned i = 0; i < n_removal; i++)
+        for(unsigned i = 0; i < n_removal; ++i)
         {
             T_removal[i] = 0.;
         }
@@ -208,14 +208,14 @@ int main(int argc, char **argv)
     // Output the initial state
 
     outfile << time;
-    for(unsigned j = 0; j < n_urns; j++)
+    for(unsigned j = 0; j < n_urns; ++j)
     {
         outfile << " " << n[j];
     }
     outfile << std::endl;
 
     //testoutfile << time;
-    //for(unsigned j = 0; j < n_urns; j++)
+    //for(unsigned j = 0; j < n_urns; ++j)
     //{
     //    testoutfile << " " << n[j];
     //}
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
         total_particles = 0;
 
         // Calculate the "reaction" rates for all events
-        for(unsigned j = 0; j < n_urns; j++)
+        for(unsigned j = 0; j < n_urns; ++j)
         {
             // There are only n_urns-1 move events in each direction
             if(j < n_urns-1)
@@ -282,15 +282,16 @@ int main(int argc, char **argv)
         //}
 
         // Calculate the probabilities of all events
-        for(unsigned j = 0; j < n_events; j++)
+        for(unsigned j = 0; j < n_events; ++j)
         {
             probs[j] = T[j]/T0;
         }
 
-        // Get two uniformly random numbers
+        // Get a uniformly random number
         r1 = uniform_gen();
 
-        // Set next timestep
+        // Set next timestep from exponential distribution using inverse
+        // transform sampling (inverse of cdf of exp dist.)
         dt = 1./T0*log(1./r1);
 
         // Set up weighted discrete distribution with the probabilities
@@ -309,11 +310,11 @@ int main(int argc, char **argv)
 
         // Do outputs at appropriate intervals until the time of the last
         // output exceeds the new actual time (t+dt)
-        for(unsigned l = k+1; l*output_interval < time+dt && l*output_interval <= t_max; l++)
+        for(unsigned l = k+1; l*output_interval < time+dt && l*output_interval <= t_max; ++l)
         {
             outfile << l*output_interval;
 
-            for(unsigned j = 0; j < n_urns; j++)
+            for(unsigned j = 0; j < n_urns; ++j)
             {
                 outfile << " " << n[j];
             }
@@ -334,44 +335,44 @@ int main(int argc, char **argv)
         {
             unsigned urn = event;
 
-            n[urn+1]--;
-            n[urn]++;
+            --n[urn+1];
+            ++n[urn];
         }
         // Hop right
         else if(event < (n_hop_left + n_hop_right))
         {
             unsigned urn = event - n_hop_left;
 
-            n[urn]--;
-            n[urn+1]++;
+            --n[urn];
+            ++n[urn+1];
         }
         // Removal
         else if(event < (n_hop_left + n_hop_right + n_removal))
         {
             unsigned urn = event - (n_hop_left + n_hop_right);
 
-            n[urn]--;
+            --n[urn];
 
             // Update running total of particles
-            total_particles--;
+            --total_particles;
         }
         else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow))
         {
             unsigned urn = 0;
 
-            n[urn]++;
+            ++n[urn];
 
             // Update running total of particles
-            total_particles++;
+            ++total_particles;
         }
         else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow + n_outflow))
         {
             unsigned urn = n_urns-1;
 
-            n[urn]--;
+            --n[urn];
 
             // Update running total of particles
-            total_particles--;
+            --total_particles;
         }
         else
         {
