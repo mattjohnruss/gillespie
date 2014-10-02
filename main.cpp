@@ -125,12 +125,6 @@ int main(int argc, char **argv)
     // Uniform distribution object
     boost::random::uniform_real_distribution<double> uniform_dist(0,1);
 
-    // Variate generator for uniform distribution
-    boost::variate_generator<
-        boost::mt19937&,
-        boost::random::uniform_real_distribution<double> >
-            uniform_gen(rng_uniform, uniform_dist);
-
     // RNG for discrete distribution based on T
     // (dist constructed inside time loop because it is different for each
     // timestep)
@@ -150,12 +144,6 @@ int main(int argc, char **argv)
     // Lognormal distribution object
     boost::random::lognormal_distribution<double>
         lognormal_dist(lognormal_m, lognormal_s);
-
-    // Variate generator for lognormal sink distribution
-    boost::random::variate_generator<
-        boost::mt19937&,
-        boost::random::lognormal_distribution<double> >
-            lognormal_gen(rng_lognormal, lognormal_dist);
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;
@@ -183,7 +171,7 @@ int main(int argc, char **argv)
     {
         for(unsigned i = 0; i < n_removal; ++i)
         {
-            T_removal[i] = lognormal_gen();
+            T_removal[i] = lognormal_dist(rng_lognormal);
         }
     }
     else
@@ -288,7 +276,7 @@ int main(int argc, char **argv)
         }
 
         // Get a uniformly random number
-        r1 = uniform_gen();
+        r1 = uniform_dist(rng_uniform);
 
         // Set next timestep from exponential distribution using inverse
         // transform sampling (inverse of cdf of exp dist.)
@@ -297,10 +285,6 @@ int main(int argc, char **argv)
         // Set up weighted discrete distribution with the probabilities
         boost::random::discrete_distribution<>
             discrete_dist(probs.begin(),probs.end());
-
-        // we don't make a variate generator here because it makes no difference
-        // to the values of anything (it's just encapsulation of a dist and a
-        // rng) and because we are making a distribution every timestep
 
         // Randomly choose event
         unsigned event = discrete_dist(rng_discrete);
