@@ -9,10 +9,9 @@
 
 namespace po = boost::program_options;
 
-int main(int argc, char **argv)
+// Declare parameters in the Params namespace
+namespace Params
 {
-    // Declare parameter variables so we can pass them to add_options() below
-
     // Number of urns
     unsigned n_urns = 0;
 
@@ -43,6 +42,11 @@ int main(int argc, char **argv)
     // Desired mean and variance of the lognormal distribution
     double lognormal_mean = 1;
     double lognormal_variance = 1;
+}
+
+int main(int argc, char **argv)
+{
+    using namespace Params;
 
     // Options description object
     po::options_description desc("Allowed options");
