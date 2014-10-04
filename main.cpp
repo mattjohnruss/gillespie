@@ -38,12 +38,15 @@ namespace Params
     // Output interval
     double output_interval = 0.01;
 
+    // Flag for lognormal sinks
+    bool lognormal_sinks = false;
+
     // Desired mean and variance of the lognormal distribution
     double lognormal_mean = 1;
     double lognormal_variance = 1;
 }
 
-int main(int argc, char **argv)
+void parse_command_line(int &argc, char ** &argv)
 {
     using namespace Params;
 
@@ -76,14 +79,12 @@ int main(int argc, char **argv)
     if(vm.count("help"))
     {
         std::cout << desc << '\n';
-        return 1;
+        // TODO change this to use exceptions
+        exit(1);
     }
 
     // Check for required args and output any errors
     po::notify(vm);
-
-    // Flag for lognormal sinks
-    bool lognormal_sinks = false;
 
     // Set the flag if we have mean and variance on the command line
     if(vm.count("lognormal_mean") && vm.count("lognormal_variance"))
@@ -93,7 +94,8 @@ int main(int argc, char **argv)
     else if(vm.count("lognormal_mean") || vm.count("lognormal_variance"))
     {
         std::cout << "lognormal mean or variance specified without the other!\n";
-        return 1;
+        // TODO change this to use exceptions
+        exit(1);
     }
 
     // Set the output interval to t_max if the flag is set
@@ -101,6 +103,14 @@ int main(int argc, char **argv)
     {
         output_interval = t_max;
     }
+}
+
+int main(int argc, char **argv)
+{
+    using namespace Params;
+
+    // Parse the command line args and store them in the Params namespace
+    parse_command_line(argc, argv);
 
     // Make a file object with the given filename
     std::ofstream outfile(outfile_name.c_str());
