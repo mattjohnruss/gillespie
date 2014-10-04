@@ -170,10 +170,6 @@ int main(int argc, char **argv)
     // Make the vector of "rates" of the different events
     std::vector<double> T(n_events);
 
-    // Storage for probabilities for the events - must be stored separately
-    // since it depends on T0
-    std::vector<double> probs(n_events);
-
     std::vector<double> T_removal(n_removal);
 
     if(lognormal_sinks)
@@ -278,12 +274,6 @@ int main(int argc, char **argv)
         //    T[n_hop_left + n_hop_right + n_removal + n_inflow] = 0;
         //}
 
-        // Calculate the probabilities of all events
-        for(unsigned j = 0; j < n_events; ++j)
-        {
-            probs[j] = T[j]/T0;
-        }
-
         // Get a uniformly random number
         r1 = uniform_dist(rng_uniform);
 
@@ -293,7 +283,7 @@ int main(int argc, char **argv)
 
         // Set up weighted discrete distribution with the probabilities
         std::discrete_distribution<>
-            discrete_dist(probs.begin(),probs.end());
+            discrete_dist(T.begin(),T.end());
 
         // Randomly choose event
         unsigned event = discrete_dist(rng_discrete);
