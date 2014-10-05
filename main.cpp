@@ -281,7 +281,8 @@ int main(int argc, char **argv)
         // transform sampling (inverse of cdf of exp dist.)
         dt = 1./T0*log(1./r1);
 
-        // Set up weighted discrete distribution with the probabilities
+        // Set up weighted discrete distribution with the rates
+        // discrete_distribution normalises the weights so we don't have to
         std::discrete_distribution<>
             discrete_dist(T.begin(),T.end());
 
