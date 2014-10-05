@@ -154,6 +154,9 @@ int main(int argc, char **argv)
     std::lognormal_distribution<double>
         lognormal_dist(lognormal_m, lognormal_s);
 
+    std::mt19937 rng_uniform_sinks(rd());
+    std::uniform_real_distribution<double> uniform_sinks_dist(0,1);
+
     // Storage for uniformly random number used for timestep
     double r1 = 0;
 
@@ -184,6 +187,7 @@ int main(int argc, char **argv)
         for(unsigned i = 0; i < n_removal; ++i)
         {
             T_removal[i] = 0.;
+            //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
         }
     }
 
