@@ -280,5 +280,56 @@ int main(int argc, char **argv)
 
     correlation_file.close();
 
+    // Cross-correlation
+    // -----------------
+    //
+    // is it really the cross-corr? It is the correlation coefficient between n_i at time t
+    // and n_j at time t+k, as a function of k
+
+    std::ofstream cross_corr_1_file("cross_corr_1.dat");
+
+    // The reference node corresponding to time t, calculated manually from t=30, dt=0.01
+    // 1/0.01 * (30 + 0.01)
+    unsigned ref_node = 3001;
+
+    // The number of lag steps
+    unsigned n_k = n_nodes - ref_node;
+
+    // Storage for the cross correlation
+    std::vector<std::vector<double> > cross_corr_1(n_k, std::vector<double>(n_fields,0.));
+
+    // Loop over the lag
+    for(unsigned k = 0; k < n_k; ++k)
+    {
+        cross_corr_1_file << k << " ";
+
+        // Loop over the fields
+        for(unsigned field = 0; field < n_fields; ++field)
+        {
+            // Loop over the files
+            for(unsigned f = 0; f < n_files; ++f)
+            {
+                // Add the contribution from each file
+                cross_corr_1[k][field] +=
+                    (data[f][ref_node][0] - mean[ref_node][0]) *
+                    (data[f][ref_node + k][field] - mean[ref_node + k][field])*inv_n_files_m1;
+            }
+
+            // Divide by the the variances of fields 1 and 2
+            cross_corr_1[k][field] /=
+                (sqrt(covariance[ref_node][0][0] *
+                      covariance[ref_node][field][field]));
+
+            // Output the cross correlation
+            cross_corr_1_file << cross_corr_1[k][field] << " ";
+        }
+
+        // New line after each lag
+        cross_corr_1_file << std::endl;
+    }
+
+    // Close the correlation file
+    cross_corr_1_file.close();
+
     return 0;
 }
