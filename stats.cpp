@@ -286,11 +286,18 @@ int main(int argc, char **argv)
     // is it really the cross-corr? It is the correlation coefficient between n_i at time t
     // and n_j at time t+k, as a function of k
 
-    std::ofstream cross_corr_1_file("cross_corr_1.dat");
-
     // The reference node corresponding to time t, calculated manually from t=30, dt=0.01
     // 1/0.01 * (30 + 0.01)
     unsigned ref_node = 3001;
+
+    // If the hardcoded ref_node is greater than the actual number of nodes (avoids massive bad_alloc
+    if(ref_node > n_nodes)
+    {
+        std::cout << "not trying to calculate cross_corr because ref_node > n_nodes" << std::endl;
+        return 0;
+    }
+
+    std::ofstream cross_corr_1_file("cross_corr_1.dat");
 
     // The number of lag steps
     unsigned n_k = n_nodes - ref_node;
