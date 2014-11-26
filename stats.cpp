@@ -290,10 +290,12 @@ int main(int argc, char **argv)
     // 1/0.01 * (30 + 0.01)
     unsigned ref_node = 3001;
 
-    // If the hardcoded ref_node is greater than the actual number of nodes (avoids massive bad_alloc
+    // If the hardcoded ref_node is greater than the actual number of nodes
+    // (avoids massive bad_alloc)
     if(ref_node > n_nodes)
     {
-        std::cout << "not trying to calculate cross_corr because ref_node > n_nodes" << std::endl;
+        std::cout << "not trying to calculate cross_corr because ref_node > n_nodes"
+                  << std::endl;
         return 0;
     }
 
