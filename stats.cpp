@@ -24,6 +24,9 @@ unsigned number_of_digits(unsigned n)
 
 int main(int argc, char **argv)
 {
+    // HACK TO ONLY COMPUTE VARIANCE!
+    bool var_flag = true;
+
     // Parse command line arguments
     // ----------------------------
 
@@ -208,6 +211,12 @@ int main(int argc, char **argv)
         // Loop over the fields
         for(unsigned field = 0; field < n_fields; field++)
         {
+            // HACK TO ONLY CALCULATE VARIANCE!
+            if(var_flag)
+            {
+                covariance_file << static_cast<double>(field)/static_cast<double>(n_fields) << " ";
+            }
+
             // Loop over the files
             for(unsigned f = 0; f < n_files; f++)
             {
@@ -218,21 +227,25 @@ int main(int argc, char **argv)
             // Loop over the fields again for the covariance
             for(unsigned field2 = 0; field2 < n_fields; field2++)
             {
-                // Loop over the files again --- have to do this separately
-                // from the above loop since we need the means in the covariance
-                // calculation
-                for(unsigned f = 0; f < n_files; f++)
+                // HACK TO ONLY CALCULATE VARIANCE!
+                if(var_flag && field2 == field)
                 {
-                   covariance[node][field][field2] +=
-                       (data[f][node][field] - mean[node][field]) *
-                       (data[f][node][field2] - mean[node][field2])*inv_n_files_m1;
+                    // Loop over the files again --- have to do this separately
+                    // from the above loop since we need the means in the covariance
+                    // calculation
+                    for(unsigned f = 0; f < n_files; f++)
+                    {
+                        covariance[node][field][field2] +=
+                            (data[f][node][field] - mean[node][field]) *
+                            (data[f][node][field2] - mean[node][field2])*inv_n_files_m1;
+                    }
+
+                    // At this point in the loops, covariance[node][field][field2] has
+                    // all the data it needs and just needs to be output
+
+                    // Output the covariance
+                    covariance_file << covariance[node][field][field2] << " ";
                 }
-
-                // At this point in the loops, covariance[node][field][field2] has
-                // all the data it needs and just needs to be output
-
-                // Output the covariance
-                covariance_file << covariance[node][field][field2] << " ";
             }
 
             // New line bewteen rows of the cov matrix
@@ -265,10 +278,14 @@ int main(int argc, char **argv)
             // Loop over the fields again
             for(unsigned field2 = 0; field2 < n_fields; field2++)
             {
-                correlation_file
-                    << covariance[node][field][field2]/(
-                            sqrt(covariance[node][field][field])*sqrt(covariance[node][field2][field2]))
-                    << " ";
+                // HACK TO ONLY CALCULATE VARIANCE!
+                if(var_flag && field2 == field)
+                {
+                    correlation_file
+                        << covariance[node][field][field2]/(
+                                sqrt(covariance[node][field][field])*sqrt(covariance[node][field2][field2]))
+                        << " ";
+                }
             }
 
             // New line bewteen rows of the corr matrix
