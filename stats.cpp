@@ -25,7 +25,7 @@ unsigned number_of_digits(unsigned n)
 int main(int argc, char **argv)
 {
     // HACK TO ONLY COMPUTE VARIANCE!
-    bool var_flag = true;
+    bool var_flag = false;
 
     // Parse command line arguments
     // ----------------------------
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
             for(unsigned field2 = 0; field2 < n_fields; field2++)
             {
                 // HACK TO ONLY CALCULATE VARIANCE!
-                if(var_flag && field2 == field)
+                if((var_flag && field2 == field) || !var_flag)
                 {
                     // Loop over the files again --- have to do this separately
                     // from the above loop since we need the means in the covariance
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
             for(unsigned field2 = 0; field2 < n_fields; field2++)
             {
                 // HACK TO ONLY CALCULATE VARIANCE!
-                if(var_flag && field2 == field)
+                if((var_flag && field2 == field) || !var_flag)
                 {
                     correlation_file
                         << covariance[node][field][field2]/(
