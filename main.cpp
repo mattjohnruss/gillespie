@@ -184,31 +184,32 @@ int main(int argc, char **argv)
     }
     else
     {
-        unsigned sink_interval = 5;
-        double sink_strength = 1;
+        //unsigned sink_interval = 5;
+        //double sink_strength = 1;
 
-        //for(unsigned i = 0; i < n_removal; ++i)
-        //{
-        //    T_removal[i] = 1.0;
-        //}
+        for(unsigned i = 0; i < n_removal; ++i)
+        {
+            T_removal[i] = 0.0;
+            //T_removal[i] = 10*uniform_sinks_dist(rng_uniform_sinks);
+        }
 
         //T_removal[0] = 0.0;
 
-        for(unsigned i = 1; i < n_removal; ++i)
-        {
-            if(!(i % sink_interval))
-            {
-                T_removal[i] = sink_strength;
-                std::cout << "sink at urn " << i << std::endl;
-            }
-            else
-            {
-                T_removal[i] = 0.0;
-            }
+        //for(unsigned i = 1; i < n_removal; ++i)
+        //{
+        //    if(!(i % sink_interval))
+        //    {
+        //        T_removal[i] = sink_strength;
+        //        std::cout << "sink at urn " << i << std::endl;
+        //    }
+        //    else
+        //    {
+        //        T_removal[i] = 0.0;
+        //    }
 
-            //T_removal[i] = 0.;
-            //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
-        }
+        //    //T_removal[i] = 0.;
+        //    //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
+        //}
 
         //T_removal[n_removal-1] = sink_strength;
     }
@@ -270,16 +271,16 @@ int main(int argc, char **argv)
 
             // Assign the rates of removal events (have to do this in the loop
             // since removal can only occur if the urn is non-empty!)
-            if(n[j] > 0)
-            {
-                //T[n_hop_left + n_hop_right + j] = T_removal[j]*n[j];
-                T[n_hop_left + n_hop_right + j] = T_removal[j];
+            //if(n[j] > 0)
+            //{
+                T[n_hop_left + n_hop_right + j] = T_removal[j]*n[j];
+            //    T[n_hop_left + n_hop_right + j] = T_removal[j];
                 T0 += T_removal[j];
-            }
-            else
-            {
-                T[n_hop_left + n_hop_right + j] = 0;
-            }
+            //}
+            //else
+            //{
+            //    T[n_hop_left + n_hop_right + j] = 0;
+            //}
 
             // Calculate total_particles
             total_particles += n[j];
