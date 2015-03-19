@@ -102,6 +102,15 @@ int main(int argc, char **argv)
     // timestep)
     std::mt19937 rng_discrete(rd());
 
+    // RNG for birth parameter
+    std::mt19937 rng_uniform_birth(rd());
+
+    // Uniform distribution object for birth parameter
+    std::uniform_real_distribution<double> uniform_dist_birth(100,1000);
+
+    // Get a random birth rate
+    T_birth = uniform_dist_birth(rng_uniform_birth);
+
     // Storage for uniformly random number used for timestep
     double r1 = 0;
 
