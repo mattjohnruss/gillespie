@@ -165,8 +165,8 @@ int main(int argc, char **argv)
         // output exceeds the new actual time (t+dt)
         for(unsigned l = k+1; l*output_interval < time+dt && l*output_interval <= t_max; ++l)
         {
-            //outfile << l*output_interval << " " << n << std::endl;
-            outfile << n << std::endl;
+            outfile << l*output_interval << " " << n << std::endl;
+            //outfile << n << std::endl;
 
             // Update k to l (by the end of the loop k should equal the
             // index of the last output performed). Only NEEDS to be done on
