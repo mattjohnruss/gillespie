@@ -155,7 +155,11 @@ int main(int argc, char **argv)
         lognormal_dist(lognormal_m, lognormal_s);
 
     std::mt19937 rng_uniform_sinks(rd());
-    std::uniform_real_distribution<double> uniform_sinks_dist(0,1);
+    double ep = 0.5;
+    std::uniform_real_distribution<double> uniform_sinks_dist(1. - ep,1. + ep);
+
+    //std::mt19937 rng_norm_pert_sinks(rd());
+    //std::normal_distribution<double> norm_pert_sinks_dist(1,0.1);
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;
@@ -189,8 +193,9 @@ int main(int argc, char **argv)
 
         for(unsigned i = 0; i < n_removal; ++i)
         {
-            T_removal[i] = 0.0;
-            //T_removal[i] = 10*uniform_sinks_dist(rng_uniform_sinks);
+            T_removal[i] = 1.0;
+            //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
+            //T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
         }
 
         //T_removal[0] = 0.0;
@@ -213,6 +218,14 @@ int main(int argc, char **argv)
 
         //T_removal[n_removal-1] = sink_strength;
     }
+
+    // **** TEST
+    //std::ofstream sinksfile((outfile_name + "-sinks").c_str());
+    //for(unsigned i = 0; i < n_urns; ++i)
+    //{
+    //    sinksfile << T_removal[i] << '\n';
+    //}
+    //sinksfile.close();
 
     // Total of rates
     double T0 = 0;
@@ -275,7 +288,7 @@ int main(int argc, char **argv)
             //{
                 T[n_hop_left + n_hop_right + j] = T_removal[j]*n[j];
             //    T[n_hop_left + n_hop_right + j] = T_removal[j];
-                T0 += T_removal[j];
+                T0 += T[n_hop_left + n_hop_right + j];
             //}
             //else
             //{
