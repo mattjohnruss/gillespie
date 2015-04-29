@@ -308,7 +308,7 @@ int main(int argc, char **argv)
         //{
             T[n_hop_left + n_hop_right + n_removal + n_inflow] =
                 T_outflow*n[n_urns-1];
-            T0 += T_outflow*n[n_urns-1];
+            T0 += T[n_hop_left + n_hop_right + n_removal + n_inflow];
         //}
         //else
         //{
