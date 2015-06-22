@@ -17,11 +17,11 @@ namespace Params
     // Number of particles initially in the first urn
     unsigned n_init = 0;
 
-    // a
-    double a = 0;
+    // p
+    double p = 0;
 
-    // b
-    double b = 0;
+    // q
+    double q = 0;
 
     // Inflow rate
     double T_inflow = 0;
@@ -58,8 +58,8 @@ void parse_command_line(int &argc, char ** &argv)
         ("help,h", "produce help message")
         ("n_urns,n", po::value<unsigned>(&n_urns)->required(), "number of urns")
         ("n_init", po::value<unsigned>(&n_init), "initial number of particles")
-        ("diffusion,a", po::value<double>(&a)->required(), "diffusion rate")
-        ("advection,b", po::value<double>(&b)->required(), "advection rate")
+        ("hop right,p", po::value<double>(&p)->required(), "hop right rate")
+        ("hop left,q", po::value<double>(&q)->required(), "hop left rate")
         ("inflow,c", po::value<double>(&T_inflow)->required(), "inflow rate")
         ("outflow,d", po::value<double>(&T_outflow)->required(), "outflow rate")
         ("t_max,t", po::value<double>(&t_max)->required(), "maximum time")
@@ -273,10 +273,10 @@ int main(int argc, char **argv)
             if(j < n_urns-1)
             {
                 // Hop left
-                T[j] = a*n[j+1];
+                T[j] = q*n[j+1];
 
                 // Hop right
-                T[n_hop_left + j] = (a+b)*n[j];
+                T[n_hop_left + j] = p*n[j];
 
                 // Add hopping contributions to T0
                 T0 += T[j] + T[n_hop_left + j];
