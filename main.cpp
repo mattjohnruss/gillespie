@@ -164,6 +164,15 @@ int main(int argc, char **argv)
     // Storage for uniformly random number used for timestep
     double r1 = 0;
 
+    // Storage for uniformly random number used for selecting event
+    double r2 = 0;
+
+    // Index of event to be performed
+    unsigned event = 0;
+
+    // Temporary variable used for selecting event
+    double sum_temp = 0;
+
     // First n_urns-1 entires are "hop left", next n_urns-1 are "hop right",
     // next n_urns are removal, then 1 inflow, 1 outflow
     const unsigned n_hop_left  = n_urns-1;
@@ -324,11 +333,33 @@ int main(int argc, char **argv)
 
         // Set up weighted discrete distribution with the rates
         // discrete_distribution normalises the weights so we don't have to
-        std::discrete_distribution<>
-            discrete_dist(T.begin(),T.end());
+        //std::discrete_distribution<>
+        //    discrete_dist(T.begin(),T.end());
 
         // Randomly choose event
-        unsigned event = discrete_dist(rng_discrete);
+        //event = discrete_dist(rng_discrete);
+
+        // More efficient way of selecting event a la Anderson 2007
+
+        // Draw uniform random number
+        r2 = uniform_dist(rng_uniform);
+
+        // Set temp sum variable to zero
+        sum_temp = 0;
+
+        // Set event varialbe to zero
+        event = 0;
+
+        for(; ; ++event)
+        {
+            sum_temp += T[event];
+            if(sum_temp > T0*r2)
+            {
+                break;
+            }
+        }
+
+        //std::cout << event << std::endl;
 
         // Output must happen here to avoid saving the previous state of the
         // urns
