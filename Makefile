@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall -Wno-unused-local-typedefs -O3 -std=c++11 \
+CFLAGS=-c -Wall -Wextra -pedantic -Wno-unused-local-typedefs -O3 -std=c++11 \
 	   -I/home/mrussell/Applications/boost_1_55_0/include \
 	   -I/tmp/russell-apps/boost_1_55_0/include
 LDFLAGS=-L/home/mrussell/Applications/boost_1_55_0/lib \
