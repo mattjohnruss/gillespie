@@ -314,6 +314,9 @@ int main(int argc, char **argv)
     // Index of the last output
     unsigned k = 0;
 
+    // Index of urn, used when selecting events
+    unsigned urn = 0;
+
     // Timestepping loop
     while(time < t_max)
     {
@@ -437,7 +440,7 @@ int main(int argc, char **argv)
         // Hop left
         if(event < n_hop_left)
         {
-            unsigned urn = event;
+            urn = event;
 
             --n[urn+1];
             ++n[urn];
@@ -445,7 +448,7 @@ int main(int argc, char **argv)
         // Hop right
         else if(event < (n_hop_left + n_hop_right))
         {
-            unsigned urn = event - n_hop_left;
+            urn = event - n_hop_left;
 
             --n[urn];
             ++n[urn+1];
@@ -453,7 +456,7 @@ int main(int argc, char **argv)
         // Removal
         else if(event < (n_hop_left + n_hop_right + n_removal))
         {
-            unsigned urn = event - (n_hop_left + n_hop_right);
+            urn = event - (n_hop_left + n_hop_right);
 
             --n[urn];
 
@@ -462,7 +465,7 @@ int main(int argc, char **argv)
         }
         else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow))
         {
-            unsigned urn = 0;
+            urn = 0;
 
             ++n[urn];
 
@@ -471,7 +474,7 @@ int main(int argc, char **argv)
         }
         else if(event < (n_hop_left + n_hop_right + n_removal + n_inflow + n_outflow))
         {
-            unsigned urn = n_urns-1;
+            urn = n_urns-1;
 
             --n[urn];
 
