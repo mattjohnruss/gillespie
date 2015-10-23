@@ -5,6 +5,7 @@
 #include <random>
 
 #include <boost/program_options.hpp>
+#include <Eigen/Dense>
 
 namespace po = boost::program_options;
 
@@ -105,6 +106,32 @@ void parse_command_line(int &argc, char ** &argv)
     }
 }
 
+void generate_correlated_ics(std::vector<unsigned> &n, double &mean, Eigen::Matrix3d &cholesky_cov)
+{
+    if(n.size() != 3)
+    {
+        // Lolcats
+        exit(1);
+    }
+
+    Eigen::Vector3d n_ics;
+    std::random_device rd_ics;
+    std::mt19937 rng_ics(rd_ics());
+    std::normal_distribution<double> dist_ics(0,1);
+    for(unsigned i = 0; i < 3; ++i)
+    {
+        n_ics(i) = dist_ics(rng_ics);
+    }
+
+    // apparently safe to do this in one line in Eigen
+    n_ics = cholesky_cov*n_ics;
+
+    for(unsigned i = 0; i < 3; ++i)
+    {
+        n[i] = static_cast<unsigned>(std::round(mean + n_ics(i)));
+    }
+}
+
 int main(int argc, char **argv)
 {
     using namespace Params;
@@ -119,6 +146,21 @@ int main(int argc, char **argv)
 
     // Declare the storage for the urns
     std::vector<unsigned> n(n_urns,0);
+
+    // ***********************
+    // Generate correlated ICs
+    // ***********************
+
+    //double mean = 10;
+
+    //// Hardcode the precomputed Cholesky decomposition of the covariance matrix
+    //Eigen::Matrix3d cholesky_cov;
+    //cholesky_cov << 1, 0, 0,
+    //                1./2, std::sqrt(3.)/2., 0,
+    //                1./2, 1./(2.*std::sqrt(3.)), std::sqrt(2./3);
+
+    //// Generate the correlated ICs
+    //generate_correlated_ics(n, mean, cholesky_cov);
 
     // Add n_init particles to the first urn
     //n[0] = n_init;
