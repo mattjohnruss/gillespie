@@ -165,6 +165,12 @@ int main(int argc, char **argv)
     // Add n_init particles to the first urn
     //n[0] = n_init;
 
+    // Add n_init particles to each urn
+    for(unsigned i = 0; i < n_urns; ++i)
+    {
+        n[i] = n_init;
+    }
+
     // "cryptographically" RNG used to seed the other RNGs.
     // Need this because other seed methods such as getpid() + time() etc can
     // produce duplicate seeds
