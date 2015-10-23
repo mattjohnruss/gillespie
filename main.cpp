@@ -203,11 +203,11 @@ int main(int argc, char **argv)
         lognormal_dist(lognormal_m, lognormal_s);
 
     std::mt19937 rng_uniform_sinks(rd());
-    double ep = 0.5;
-    std::uniform_real_distribution<double> uniform_sinks_dist(1. - ep,1. + ep);
+    //double ep = 0.5;
+    //std::uniform_real_distribution<double> uniform_sinks_dist(1. - ep,1. + ep);
 
-    //std::mt19937 rng_norm_pert_sinks(rd());
-    //std::normal_distribution<double> norm_pert_sinks_dist(1,0.1);
+    std::mt19937 rng_norm_pert_sinks(rd());
+    std::normal_distribution<double> norm_pert_sinks_dist(0.5,0.25);
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;
@@ -245,35 +245,38 @@ int main(int argc, char **argv)
     }
     else
     {
-        //unsigned sink_interval = 5;
-        //double sink_strength = 1;
+        unsigned sink_interval = 10;
+        ///double sink_strength = 1;
 
-        for(unsigned i = 0; i < n_removal; ++i)
-        {
-            T_removal[i] = 1.0;
-            //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
-            //T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
-        }
-
-        //T_removal[0] = 0.0;
-
-        //for(unsigned i = 1; i < n_removal; ++i)
+        //for(unsigned i = 0; i < n_removal; ++i)
         //{
-        //    if(!(i % sink_interval))
-        //    {
-        //        T_removal[i] = sink_strength;
-        //        std::cout << "sink at urn " << i << std::endl;
-        //    }
-        //    else
-        //    {
-        //        T_removal[i] = 0.0;
-        //    }
-
-        //    //T_removal[i] = 0.;
+        //    T_removal[i] = 0;
         //    //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
+        //    //T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
         //}
 
-        //T_removal[n_removal-1] = sink_strength;
+        T_removal[0] = 0.0;
+
+        for(unsigned i = 1; i < n_removal; ++i)
+        {
+            if(!(i % sink_interval))
+            {
+                //T_removal[i] = sink_strength;
+                //T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
+                T_removal[i] = 0.5;
+                //std::cout << "sink at urn " << i << std::endl;
+            }
+            else
+            {
+                T_removal[i] = 0.0;
+            }
+
+            //T_removal[i] = 0.;
+            //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
+        }
+
+        T_removal[0] = 0;
+        T_removal[n_removal-1] = 0;
     }
 
     // **** TEST
