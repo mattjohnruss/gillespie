@@ -1,6 +1,6 @@
 if [ "$#" -ne 11 ];
 then
-    echo "Usage: $0 N M alpha Pe/ep Da/ep^3 n_init t_max prefix interval last_only num_runs"
+    echo "Usage: $0 N M alpha Pe/ep Da/ep^2 n_init t_max prefix interval last_only num_runs"
     exit
 fi
 
@@ -8,7 +8,7 @@ N=$1
 M=$2
 alpha=$3
 Pe_ep=$4
-Da_ep3=$5
+Da_ep2=$5
 n_init=$6
 t_max=$7
 prefix=$8
@@ -18,7 +18,7 @@ num_runs=${11}
 
 ep=$(echo "scale = 8; 1/($N + 1)" | bc)
 Pe=$(echo "scale = 8; $Pe_ep*$ep" | bc)
-Da=$(echo "scale = 8; $Da_ep3*$ep*$ep*$ep" | bc)
+Da=$(echo "scale = 8; $Da_ep2*$ep*$ep" | bc)
 dx=$(echo "scale = 8; ($N + 1)/$M" | bc)
 p=$(echo "scale = 8; (1/$dx + $Pe/2)/($Da*$dx)" | bc)
 q=$(echo "scale = 8; (1/$dx - $Pe/2)/($Da*$dx)" | bc)
@@ -53,3 +53,5 @@ then
 else
     ~/Documents/phd/gillespie/stats $num_runs ""
 fi
+
+tail -n 1 _mean.dat | cut -d ' ' -f 2- > profile.dat
