@@ -39,12 +39,20 @@ namespace Params
     // Output interval
     double output_interval = 0.01;
 
-    // Flag for lognormal sinks
-    bool lognormal_sinks = false;
+    // Flag for random sinks
+    bool random_sinks = false;
 
-    // Desired mean and variance of the lognormal distribution
-    double lognormal_mean = 1;
-    double lognormal_variance = 1;
+    // Standard deviation of sink_strengths
+    double sink_sd = 0.1;
+
+    // Flag for sparse sinks
+    bool sparse_sinks = false;
+
+    // Sink interval
+    unsigned sink_interval = 10;
+
+    // Strength of constant sinks
+    double const_sink_strength = 1;
 }
 
 void parse_command_line(int &argc, char ** &argv)
@@ -65,10 +73,13 @@ void parse_command_line(int &argc, char ** &argv)
         ("outflow,b", po::value<double>(&T_outflow)->required(), "outflow rate")
         ("t_max,t", po::value<double>(&t_max)->required(), "maximum time")
         ("outfile,f", po::value<std::string>(&outfile_name)->required(), "output file name")
-        ("interval,i", po::value<double>(&output_interval), "output interval")
-        ("lognormal_mean,m", po::value<double>(&lognormal_mean), "mean of the lognormal distribution")
-        ("lognormal_variance,v", po::value<double>(&lognormal_variance), "variance of the lognormal distribution")
-        ("last_only,l","only output the last timestep");
+        ("output_interval,i", po::value<double>(&output_interval), "output interval")
+        ("last_only,l", "only output the last timestep")
+        ("random_sinks,r", "random sinks")
+        ("sink_sd,s", po::value<double>(&sink_sd), "standard deviation of sink strengths")
+        ("sparse_sinks,z", "sparse sinks")
+        ("sink_interval,d", po::value<unsigned>(&sink_interval), "sink interval (sparse only)")
+        ("const_sink_strength,c", po::value<double>(&const_sink_strength), "strength of constant sinks");
 
     // Map for the the variables
     po::variables_map vm;
@@ -87,22 +98,20 @@ void parse_command_line(int &argc, char ** &argv)
     // Check for required args and output any errors
     po::notify(vm);
 
-    // Set the flag if we have mean and variance on the command line
-    if(vm.count("lognormal_mean") && vm.count("lognormal_variance"))
-    {
-        lognormal_sinks = true;
-    }
-    else if(vm.count("lognormal_mean") || vm.count("lognormal_variance"))
-    {
-        std::cout << "lognormal mean or variance specified without the other!\n";
-        // TODO change this to use exceptions
-        exit(1);
-    }
-
     // Set the output interval to t_max if the flag is set
     if(vm.count("last_only"))
     {
         output_interval = t_max;
+    }
+
+    if(vm.count("random_sinks"))
+    {
+        random_sinks = true;
+    }
+
+    if(vm.count("sparse_sinks"))
+    {
+        sparse_sinks = true;
     }
 }
 
@@ -187,27 +196,27 @@ int main(int argc, char **argv)
     // timestep)
     std::mt19937 rng_discrete(rd());
 
-    // RNG for lognormal distribution for the sink strengths
-    std::mt19937 rng_lognormal(rd());
+    //// RNG for lognormal distribution for the sink strengths
+    //std::mt19937 rng_lognormal(rd());
 
     // Calculate the lognormal parameters from desired mean and variance
 
-    // Calculate the m and s params for the distribution based on mean and var
-    double lognormal_m =
-        std::log(std::pow(lognormal_mean,2)/std::sqrt(lognormal_variance + std::pow(lognormal_mean,2)));
-    double lognormal_s =
-        std::sqrt(std::log(1+lognormal_variance/std::pow(lognormal_mean,2)));
+    //// Calculate the m and s params for the distribution based on mean and var
+    //double lognormal_m =
+    //    std::log(std::pow(lognormal_mean,2)/std::sqrt(lognormal_variance + std::pow(lognormal_mean,2)));
+    //double lognormal_s =
+    //    std::sqrt(std::log(1+lognormal_variance/std::pow(lognormal_mean,2)));
 
-    // Lognormal distribution object
-    std::lognormal_distribution<double>
-        lognormal_dist(lognormal_m, lognormal_s);
+    //// Lognormal distribution object
+    //std::lognormal_distribution<double>
+    //    lognormal_dist(lognormal_m, lognormal_s);
 
     std::mt19937 rng_uniform_sinks(rd());
     //double ep = 0.5;
     //std::uniform_real_distribution<double> uniform_sinks_dist(1. - ep,1. + ep);
 
     std::mt19937 rng_norm_pert_sinks(rd());
-    std::normal_distribution<double> norm_pert_sinks_dist(0.5,0.25);
+    std::normal_distribution<double> norm_pert_sinks_dist(1,sink_sd);
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;
@@ -236,35 +245,25 @@ int main(int argc, char **argv)
 
     std::vector<double> T_removal(n_removal);
 
-    if(lognormal_sinks)
+    // Set the sinks strengths
+
+    if(sparse_sinks)
     {
-        for(unsigned i = 0; i < n_removal; ++i)
-        {
-            T_removal[i] = lognormal_dist(rng_lognormal);
-        }
-    }
-    else
-    {
-        unsigned sink_interval = 10;
-        ///double sink_strength = 1;
-
-        //for(unsigned i = 0; i < n_removal; ++i)
-        //{
-        //    T_removal[i] = 0;
-        //    //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
-        //    //T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
-        //}
-
-        T_removal[0] = 0.0;
-
+        // Sparse sinks
         for(unsigned i = 1; i < n_removal; ++i)
         {
             if(!(i % sink_interval))
             {
-                //T_removal[i] = sink_strength;
-                //T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
-                T_removal[i] = 0.5;
-                //std::cout << "sink at urn " << i << std::endl;
+                if(random_sinks)
+                {
+                    T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
+                }
+                else
+                {
+                    T_removal[i] = const_sink_strength;
+                }
+                // Test:
+                //std::cout << "sink of strength " << T_removal[i] << " at urn " << i << std::endl;
             }
             else
             {
@@ -275,8 +274,25 @@ int main(int argc, char **argv)
             //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
         }
 
-        T_removal[0] = 0;
-        T_removal[n_removal-1] = 0;
+        // No sinks at first and last urns when sparse
+        T_removal[0] = 0.0;
+        T_removal[n_removal-1] = 0.0;
+    }
+    else
+    {
+        // Dense sinks
+        for(unsigned i = 0; i < n_removal; ++i)
+        {
+            if(random_sinks)
+            {
+                //T_removal[i] = uniform_sinks_dist(rng_uniform_sinks);
+                T_removal[i] = norm_pert_sinks_dist(rng_norm_pert_sinks);
+            }
+            else
+            {
+                T_removal[i] = const_sink_strength;
+            }
+        }
     }
 
     // **** TEST
