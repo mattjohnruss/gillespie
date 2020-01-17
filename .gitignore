@@ -2,6 +2,7 @@ main
 mean
 stats
 write_cmds
+asep
 *.o
 *~
 *.swp

@@ -19,7 +19,7 @@ namespace Params
 
     // Death rate
     double T_death = 0;
-    double T_death_per_particle = 0;
+    //double T_death_per_particle = 0;
 
     // Maximum time
     double t_max = 0;
@@ -43,7 +43,8 @@ void parse_command_line(int &argc, char ** &argv)
         ("help,h", "produce help message")
         ("n_init,n", po::value<unsigned>(&n_init)->required(), "initial number of particles")
         ("birth,b", po::value<double>(&T_birth)->required(), "birth rate")
-        ("death,d", po::value<double>(&T_death_per_particle)->required(), "death rate per particle")
+        //("death,d", po::value<double>(&T_death_per_particle)->required(), "death rate per particle")
+        ("death,d", po::value<double>(&T_death)->required(), "death rate")
         ("t_max,t", po::value<double>(&t_max)->required(), "maximum time")
         ("outfile,f", po::value<std::string>(&outfile_name)->required(), "output file name")
         ("interval,i", po::value<double>(&output_interval), "output interval")
@@ -84,7 +85,7 @@ int main(int argc, char **argv)
     std::ofstream outfile(outfile_name.c_str());
 
     // Declare the storage for the urns and initialise to n_init
-    unsigned n = n_init;
+    int n = n_init;
 
     // "cryptographically" RNG used to seed the other RNGs.
     // Need this because other seed methods such as getpid() + time() etc can
@@ -103,13 +104,13 @@ int main(int argc, char **argv)
     std::mt19937 rng_discrete(rd());
 
     // RNG for birth parameter
-    std::mt19937 rng_uniform_birth(rd());
+    //std::mt19937 rng_uniform_birth(rd());
 
     // Uniform distribution object for birth parameter
-    std::uniform_real_distribution<double> uniform_dist_birth(100,1000);
+    //std::uniform_real_distribution<double> uniform_dist_birth(100,1000);
 
     // Get a random birth rate
-    T_birth = uniform_dist_birth(rng_uniform_birth);
+    //T_birth = uniform_dist_birth(rng_uniform_birth);
 
     // Storage for uniformly random number used for timestep
     double r1 = 0;
@@ -139,9 +140,10 @@ int main(int argc, char **argv)
         T0 = 0;
 
         T0 += T_birth;
+        T0 += T_death;
 
-        T_death = T_death_per_particle*n;
-        T0 += T_death_per_particle*n;
+        //T_death = T_death_per_particle*n;
+        //T0 += T_death_per_particle*n;
 
         // Get a uniformly random number
         r1 = uniform_dist(rng_uniform);
